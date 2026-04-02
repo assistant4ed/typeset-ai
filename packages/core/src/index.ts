@@ -15,3 +15,4 @@ export type {
 
 export { parseMarkdown } from "./content-parser.js";
 export { buildHtml } from "./html-builder.js";
+export { runPreflight } from "./preflight.js";
