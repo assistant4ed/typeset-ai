@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/node": "20.11.16",
+    "next": "14.2.3",
     "typescript": "5.3.3",
     "vitest": "1.2.2",
     "eslint": "8.56.0"
