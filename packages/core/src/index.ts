@@ -11,6 +11,12 @@ export type {
   RenderOptions,
   PreflightResult,
   PreflightIssue,
+  IdmlExportOptions,
+  SvgExportOptions,
+  ChatMessage,
+  ChatSession,
+  ChatResponse,
+  CssDiff,
 } from "./types.js";
 
 export { parseMarkdown } from "./content-parser.js";
@@ -20,3 +26,4 @@ export { generateLayout } from "./ai-layout.js";
 export { scanReference } from "./reference-scanner.js";
 export type { ScanResult } from "./reference-scanner.js";
 export { renderPdf } from "./pdf-renderer.js";
+export { exportIdml } from "./idml-exporter.js";
