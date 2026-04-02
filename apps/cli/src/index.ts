@@ -6,6 +6,7 @@ import { layoutCommand } from "./commands/layout.js";
 import { renderCommand } from "./commands/render.js";
 import { preflightCommand } from "./commands/preflight.js";
 import { exportIdmlCommand } from "./commands/export-idml.js";
+import { exportSvgCommand } from "./commands/export-svg.js";
 
 const program = new Command();
 
@@ -19,5 +20,6 @@ program.addCommand(layoutCommand);
 program.addCommand(renderCommand);
 program.addCommand(preflightCommand);
 program.addCommand(exportIdmlCommand);
+program.addCommand(exportSvgCommand);
 
 program.parse();

@@ -27,3 +27,5 @@ export { scanReference } from "./reference-scanner.js";
 export type { ScanResult } from "./reference-scanner.js";
 export { renderPdf } from "./pdf-renderer.js";
 export { exportIdml } from "./idml-exporter.js";
+export { exportSvg } from "./svg-exporter.js";
+export type { SvgExportConfig } from "./svg-exporter.js";
