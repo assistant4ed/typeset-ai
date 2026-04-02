@@ -29,3 +29,10 @@ export { renderPdf } from "./pdf-renderer.js";
 export { exportIdml } from "./idml-exporter.js";
 export { exportSvg } from "./svg-exporter.js";
 export type { SvgExportConfig } from "./svg-exporter.js";
+export {
+  createChatSession,
+  sendChatMessage,
+  undoLastChange,
+  redoLastChange,
+  getChatHistory,
+} from "./chat-engine.js";

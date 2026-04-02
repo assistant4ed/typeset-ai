@@ -7,6 +7,7 @@ import { renderCommand } from "./commands/render.js";
 import { preflightCommand } from "./commands/preflight.js";
 import { exportIdmlCommand } from "./commands/export-idml.js";
 import { exportSvgCommand } from "./commands/export-svg.js";
+import { chatCommand } from "./commands/chat.js";
 
 const program = new Command();
 
@@ -21,5 +22,6 @@ program.addCommand(renderCommand);
 program.addCommand(preflightCommand);
 program.addCommand(exportIdmlCommand);
 program.addCommand(exportSvgCommand);
+program.addCommand(chatCommand);
 
 program.parse();
