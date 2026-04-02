@@ -1,0 +1,98 @@
+{
+  "metadata": {
+    "title": "The Great Adventure",
+    "author": "Jane Smith",
+    "source": "markdown",
+    "pageCount": 0
+  },
+  "frontMatter": [],
+  "chapters": [
+    {
+      "title": "Chapter 1: The Beginning",
+      "number": 1,
+      "sections": [
+        {
+          "heading": "The Morning",
+          "level": 2,
+          "blocks": [
+            {
+              "type": "paragraph",
+              "content": "It was a bright cold day in April, and the clocks were striking thirteen. The hallway smelt of boiled cabbage and old rag mats.",
+              "attributes": {}
+            },
+            {
+              "type": "paragraph",
+              "content": "Winston Smith, his chin nuzzled into his breast, slipped quickly through the glass doors.",
+              "attributes": {}
+            }
+          ]
+        },
+        {
+          "heading": "The Discovery",
+          "level": 2,
+          "blocks": [
+            {
+              "type": "paragraph",
+              "content": "He found an old book in the attic. The pages were yellowed and fragile.",
+              "attributes": {}
+            },
+            {
+              "type": "blockquote",
+              "content": "\"Every book is a journey,\" she whispered.",
+              "attributes": {}
+            },
+            {
+              "type": "list",
+              "content": "<ul><li>Item one of a list</li><li>Item two of a list</li><li>Item three of a list</li></ul>",
+              "attributes": {
+                "ordered": "false"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chapter 2: The Journey",
+      "number": 2,
+      "sections": [
+        {
+          "heading": "Setting Out",
+          "level": 2,
+          "blocks": [
+            {
+              "type": "paragraph",
+              "content": "The road stretched endlessly before them, winding through hills covered in wildflowers.",
+              "attributes": {}
+            },
+            {
+              "type": "image",
+              "content": "images/mountain.jpg",
+              "attributes": {
+                "alt": "Mountain landscape",
+                "assetId": "asset-0"
+              }
+            },
+            {
+              "type": "table",
+              "content": "<table><thead><tr><th>Destination</th><th>Distance</th><th>Time</th></tr></thead><tbody><tr><td>Village</td><td>10km</td><td>2 hours</td></tr><tr><td>City</td><td>50km</td><td>1 day</td></tr><tr><td>Coast</td><td>200km</td><td>3 days</td></tr></tbody></table>",
+              "attributes": {}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "backMatter": [],
+  "assets": [
+    {
+      "id": "asset-0",
+      "originalName": "mountain.jpg",
+      "localPath": "images/mountain.jpg",
+      "mimeType": "image/jpeg",
+      "width": 0,
+      "height": 0,
+      "dpi": 72
+    }
+  ]
+}

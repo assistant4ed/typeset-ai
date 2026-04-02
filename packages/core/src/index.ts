@@ -12,3 +12,5 @@ export type {
   PreflightResult,
   PreflightIssue,
 } from "./types.js";
+
+export { parseMarkdown } from "./content-parser.js";
