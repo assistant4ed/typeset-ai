@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = new Set(["/login", "/api/auth"]);
+const PUBLIC_PATHS = new Set(["/login", "/api/auth", "/share", "/api/v1/share"]);
 
 function isPublicPath(pathname: string): boolean {
   for (const path of PUBLIC_PATHS) {
