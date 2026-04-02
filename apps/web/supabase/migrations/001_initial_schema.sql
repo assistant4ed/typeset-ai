@@ -171,7 +171,7 @@ create index idx_style_changes_project_id on style_changes (project_id);
 create table share_links (
   id            uuid primary key default gen_random_uuid(),
   project_id    uuid not null references projects (id) on delete cascade,
-  token         text not null unique default encode(gen_random_bytes(24), 'base64url'),
+  token         text not null unique default replace(gen_random_uuid()::text, '-', ''),
   password_hash text,
   expires_at    timestamptz,
   permissions   share_permission not null default 'view',

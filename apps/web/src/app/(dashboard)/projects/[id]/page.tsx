@@ -20,8 +20,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq("id", params.id)
     .single();
 
+  const name = (project as { name?: string } | null)?.name;
+
   return {
-    title: project?.name ?? "Project",
+    title: name ?? "Project",
   };
 }
 
@@ -31,7 +33,7 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
 
   const db = createServerClient();
 
-  const [{ data: project }, { data: styles }, { data: content }] = await Promise.all([
+  const [projectRes, stylesRes, contentRes] = await Promise.all([
     db.from("projects").select("*").eq("id", params.id).single(),
     db
       .from("project_styles")
@@ -48,6 +50,13 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
       .limit(1)
       .maybeSingle(),
   ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const project = projectRes.data as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const styles = stylesRes.data as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const content = contentRes.data as any;
 
   if (!project) notFound();
 

@@ -3,6 +3,13 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push("puppeteer", "puppeteer-core");
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {
