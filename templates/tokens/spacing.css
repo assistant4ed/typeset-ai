@@ -1,0 +1,16 @@
+:root {
+  --space-xs: 2mm;
+  --space-sm: 4mm;
+  --space-md: 8mm;
+  --space-lg: 12mm;
+  --space-xl: 20mm;
+  --space-2xl: 30mm;
+
+  --margin-top: 20mm;
+  --margin-bottom: 25mm;
+  --margin-inner: 25mm;
+  --margin-outer: 15mm;
+
+  --bleed: 3mm;
+  --gutter: 5mm;
+}

@@ -1,0 +1,58 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+@import "../tokens/grid.css";
+
+@page {
+  size: 210mm 275mm;
+  margin: 12mm 10mm 15mm 10mm;
+  marks: crop cross;
+  bleed: 3mm;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 9.5pt;
+  line-height: var(--leading-normal);
+  column-count: 2;
+  column-gap: var(--gutter);
+}
+
+.chapter {
+  break-before: page;
+  column-count: 2;
+  column-gap: var(--gutter);
+}
+
+.chapter h1 {
+  column-span: all;
+  font-size: var(--text-3xl);
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+}
+
+.section h2 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin-top: var(--space-md);
+  color: var(--color-heading);
+}
+
+figure {
+  break-inside: avoid;
+  margin: var(--space-sm) 0;
+}
+
+figure img {
+  width: 100%;
+}
+
+blockquote {
+  font-size: var(--text-xl);
+  font-style: italic;
+  column-span: all;
+  text-align: center;
+  margin: var(--space-lg) var(--space-xl);
+  color: var(--color-gray-dark);
+}

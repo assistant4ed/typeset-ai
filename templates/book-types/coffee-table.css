@@ -1,0 +1,48 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+@import "../tokens/grid.css";
+
+@page {
+  size: 280mm 280mm;
+  margin: 15mm;
+  marks: crop cross;
+  bleed: 5mm;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+.chapter {
+  break-before: page;
+}
+
+.chapter h1 {
+  font-size: var(--text-4xl);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-xl);
+}
+
+figure {
+  margin: 0;
+  break-inside: avoid;
+}
+
+figure img {
+  width: 100%;
+  height: auto;
+}
+
+.full-bleed figure {
+  margin: 0;
+}
+
+.full-bleed img {
+  width: calc(100% + 30mm);
+  margin-left: -15mm;
+}

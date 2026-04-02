@@ -1,0 +1,47 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+@import "../tokens/grid.css";
+
+@page {
+  size: A4;
+  margin: 12mm;
+  marks: crop cross;
+  bleed: 3mm;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 9pt;
+  line-height: var(--leading-normal);
+}
+
+.chapter {
+  break-before: page;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gutter);
+}
+
+.chapter h1 {
+  grid-column: 1 / -1;
+  font-size: var(--text-2xl);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-md);
+}
+
+figure {
+  break-inside: avoid;
+  margin: 0 0 var(--space-sm) 0;
+}
+
+figure img {
+  width: 100%;
+  height: auto;
+}
+
+table {
+  width: 100%;
+  font-size: var(--text-xs);
+}

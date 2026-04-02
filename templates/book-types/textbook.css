@@ -1,0 +1,74 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+@import "../tokens/grid.css";
+
+@page {
+  size: A4;
+  margin: 20mm 15mm 25mm 20mm;
+  marks: crop cross;
+  bleed: 3mm;
+
+  @top-left {
+    content: string(chapter-title);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--color-gray);
+  }
+
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 10pt;
+  line-height: var(--leading-normal);
+}
+
+.chapter {
+  break-before: page;
+}
+
+.chapter h1 {
+  string-set: chapter-title content();
+  font-size: var(--text-2xl);
+  color: var(--color-heading);
+  border-bottom: 1pt solid var(--color-rule);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.section h2 {
+  font-size: var(--text-lg);
+  color: var(--color-heading);
+  margin-top: var(--space-lg);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-md) 0;
+  font-size: var(--text-sm);
+}
+
+th, td {
+  border: 0.5pt solid var(--color-gray-light);
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+}
+
+th {
+  background: var(--color-gray-lighter);
+  font-weight: 600;
+}
+
+blockquote {
+  background: var(--color-gray-lighter);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3pt solid var(--color-gray);
+  margin: var(--space-md) 0;
+}

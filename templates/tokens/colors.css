@@ -1,0 +1,14 @@
+:root {
+  --color-black: cmyk(0%, 0%, 0%, 100%);
+  --color-rich-black: cmyk(60%, 40%, 40%, 100%);
+  --color-gray-dark: cmyk(0%, 0%, 0%, 80%);
+  --color-gray: cmyk(0%, 0%, 0%, 50%);
+  --color-gray-light: cmyk(0%, 0%, 0%, 20%);
+  --color-gray-lighter: cmyk(0%, 0%, 0%, 10%);
+  --color-white: cmyk(0%, 0%, 0%, 0%);
+
+  --color-text: var(--color-black);
+  --color-heading: var(--color-rich-black);
+  --color-caption: var(--color-gray-dark);
+  --color-rule: var(--color-gray-light);
+}

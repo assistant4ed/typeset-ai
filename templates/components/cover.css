@@ -1,0 +1,30 @@
+.cover {
+  break-before: page;
+  break-after: page;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  text-align: center;
+}
+
+.cover .book-title {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--color-heading);
+  margin-bottom: var(--space-md);
+}
+
+.cover .book-subtitle {
+  font-size: var(--text-xl);
+  color: var(--color-gray-dark);
+  margin-bottom: var(--space-2xl);
+}
+
+.cover .book-author {
+  font-size: var(--text-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-gray);
+}

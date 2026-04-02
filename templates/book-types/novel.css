@@ -1,0 +1,101 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+
+@page {
+  size: 129mm 198mm;
+  margin: var(--margin-top) var(--margin-outer) var(--margin-bottom) var(--margin-inner);
+  marks: crop cross;
+  bleed: var(--bleed);
+
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--color-gray);
+  }
+}
+
+@page :left {
+  margin-left: var(--margin-outer);
+  margin-right: var(--margin-inner);
+
+  @bottom-left {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+  }
+
+  @bottom-center { content: none; }
+}
+
+@page :right {
+  margin-left: var(--margin-inner);
+  margin-right: var(--margin-outer);
+
+  @bottom-right {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+  }
+
+  @bottom-center { content: none; }
+}
+
+@page :first {
+  @bottom-center { content: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+body {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+  widows: 2;
+  orphans: 2;
+}
+
+.chapter {
+  break-before: right;
+}
+
+.chapter h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-heading);
+  text-align: center;
+  margin-top: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+  letter-spacing: var(--tracking-wide);
+}
+
+.section h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-md);
+  color: var(--color-heading);
+}
+
+p {
+  text-indent: 1.5em;
+  margin: 0;
+}
+
+p:first-of-type {
+  text-indent: 0;
+}
+
+blockquote {
+  margin: var(--space-md) var(--space-lg);
+  font-style: italic;
+  color: var(--color-gray-dark);
+  border-left: 2pt solid var(--color-rule);
+  padding-left: var(--space-sm);
+}
+
+.page-break {
+  break-after: page;
+}

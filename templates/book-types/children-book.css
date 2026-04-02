@@ -1,0 +1,46 @@
+@import "../tokens/typography.css";
+@import "../tokens/spacing.css";
+@import "../tokens/colors.css";
+
+@page {
+  size: 250mm 250mm;
+  margin: 12mm;
+  marks: crop cross;
+  bleed: 3mm;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-xl);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+}
+
+.chapter {
+  break-before: page;
+}
+
+.chapter h1 {
+  font-size: var(--text-4xl);
+  text-align: center;
+  color: var(--color-heading);
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-lg);
+}
+
+p {
+  text-align: center;
+  margin-bottom: var(--space-md);
+  text-indent: 0;
+}
+
+figure {
+  text-align: center;
+  margin: var(--space-lg) 0;
+}
+
+figure img {
+  max-width: 90%;
+  height: auto;
+  border-radius: 4mm;
+}

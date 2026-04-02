@@ -1,0 +1,29 @@
+.chapter-opener {
+  break-before: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60%;
+  text-align: center;
+}
+
+.chapter-opener .chapter-number {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--color-gray);
+  margin-bottom: var(--space-md);
+}
+
+.chapter-opener .chapter-title {
+  font-size: var(--text-3xl);
+  color: var(--color-heading);
+  margin-bottom: var(--space-sm);
+}
+
+.chapter-opener .chapter-subtitle {
+  font-size: var(--text-lg);
+  color: var(--color-gray-dark);
+  font-style: italic;
+}

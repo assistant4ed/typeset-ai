@@ -1,0 +1,35 @@
+.toc {
+  break-before: page;
+}
+
+.toc h1 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-xl);
+}
+
+.toc-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  border-bottom: 0.5pt dotted var(--color-gray-light);
+}
+
+.toc-entry .toc-title {
+  flex: 1;
+}
+
+.toc-entry .toc-page {
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
+  color: var(--color-gray);
+}
+
+.toc-entry.toc-chapter {
+  font-weight: 600;
+  margin-top: var(--space-sm);
+}
+
+.toc-entry.toc-section {
+  padding-left: var(--space-md);
+  font-size: var(--text-sm);
+}

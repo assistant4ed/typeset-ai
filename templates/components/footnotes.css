@@ -1,0 +1,13 @@
+.footnote {
+  font-size: var(--text-sm);
+  color: var(--color-gray-dark);
+  border-top: 0.5pt solid var(--color-rule);
+  padding-top: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+.footnote-ref {
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--color-gray-dark);
+}

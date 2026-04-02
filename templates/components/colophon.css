@@ -1,0 +1,17 @@
+.colophon {
+  break-before: page;
+  font-size: var(--text-sm);
+  color: var(--color-gray-dark);
+  text-align: center;
+  padding-top: var(--space-2xl);
+}
+
+.colophon p {
+  text-indent: 0;
+  margin-bottom: var(--space-sm);
+}
+
+.colophon .typeface-info {
+  font-style: italic;
+  margin-top: var(--space-lg);
+}

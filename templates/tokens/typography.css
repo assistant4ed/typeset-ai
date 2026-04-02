@@ -1,0 +1,23 @@
+:root {
+  --font-serif: "Georgia", "Times New Roman", serif;
+  --font-sans: "Helvetica Neue", "Arial", sans-serif;
+  --font-mono: "Courier New", monospace;
+  --font-display: var(--font-serif);
+
+  --text-xs: 8pt;
+  --text-sm: 9pt;
+  --text-base: 11pt;
+  --text-lg: 14pt;
+  --text-xl: 18pt;
+  --text-2xl: 24pt;
+  --text-3xl: 32pt;
+  --text-4xl: 42pt;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+}
