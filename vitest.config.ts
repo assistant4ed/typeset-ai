@@ -31,6 +31,10 @@ export default defineConfig({
         __dirname,
         "node_modules/.pnpm/puppeteer@21.7.0_typescript@5.3.3/node_modules/puppeteer/lib/esm/puppeteer/puppeteer.js",
       ),
+      "jszip": resolve(
+        __dirname,
+        "node_modules/.pnpm/jszip@3.10.1/node_modules/jszip/lib/index.js",
+      ),
     },
   },
 });
