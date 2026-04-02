@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd ../../packages/core && pnpm build && cd ../../apps/web && next build",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs"
+}
