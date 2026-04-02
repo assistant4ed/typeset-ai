@@ -14,3 +14,4 @@ export type {
 } from "./types.js";
 
 export { parseMarkdown } from "./content-parser.js";
+export { buildHtml } from "./html-builder.js";
