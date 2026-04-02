@@ -11,16 +11,19 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.39.0",
     "mammoth": "1.8.0",
-    "unified": "11.0.5",
-    "remark-parse": "11.0.0",
-    "remark-frontmatter": "5.0.0",
-    "remark-gfm": "4.0.0",
-    "remark-rehype": "11.1.1",
-    "rehype-parse": "9.0.1",
-    "rehype-stringify": "10.0.1",
-    "rehype-sanitize": "6.0.0",
+    "pagedjs": "0.4.3",
     "pdfjs-dist": "4.0.379",
     "puppeteer": "21.7.0",
-    "pagedjs": "0.4.3"
+    "rehype-parse": "9.0.1",
+    "rehype-sanitize": "6.0.0",
+    "rehype-stringify": "10.0.1",
+    "remark-frontmatter": "5.0.0",
+    "remark-gfm": "4.0.0",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.1",
+    "unified": "11.0.5"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4"
   }
 }
