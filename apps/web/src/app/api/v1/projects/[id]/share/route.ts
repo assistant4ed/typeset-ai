@@ -55,11 +55,13 @@ export async function POST(request: Request, { params }: RouteParams) {
   const db = createServerClient();
 
   // Verify project exists
-  const { data: project } = await db
+  const { data: projectRaw } = await db
     .from("projects")
     .select("id, name")
     .eq("id", params.id)
     .single();
+
+  const project = projectRaw as any;
 
   if (!project) {
     return NextResponse.json(
@@ -72,8 +74,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-  const { data: shareLink, error } = await db
-    .from("share_links")
+  const { data: shareLinkRaw, error } = await (db.from("share_links") as any)
     .insert({
       project_id: params.id,
       token,
@@ -84,6 +85,8 @@ export async function POST(request: Request, { params }: RouteParams) {
     })
     .select()
     .single();
+
+  const shareLink = shareLinkRaw as any;
 
   if (error || !shareLink) {
     console.error("Failed to create share link", { cause: error });
@@ -121,7 +124,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: links, error } = await db
+  const { data: linksRaw, error } = await db
     .from("share_links")
     .select("id, token, permissions, expires_at, created_at, created_by")
     .eq("project_id", params.id)
@@ -134,5 +137,5 @@ export async function GET(_request: Request, { params }: RouteParams) {
     );
   }
 
-  return NextResponse.json({ data: links ?? [], requestId: crypto.randomUUID() });
+  return NextResponse.json({ data: (linksRaw as any) ?? [], requestId: crypto.randomUUID() });
 }

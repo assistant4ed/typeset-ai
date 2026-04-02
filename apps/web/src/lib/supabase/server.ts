@@ -16,7 +16,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
  * verifying the caller's identity via NextAuth session.
  */
 export function createServerClient() {
-  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceKey, {
+  return createSupabaseClient<Database>(supabaseUrl!, supabaseServiceKey!, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

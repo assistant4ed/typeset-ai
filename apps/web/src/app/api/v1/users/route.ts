@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     query = query.lt("created_at", cursor);
   }
 
-  const { data, error, count } = await query;
+  const { data: dataRaw, error, count } = await query;
 
   if (error) {
     console.error("Failed to list users", { cause: error });
@@ -54,6 +54,7 @@ export async function GET(request: Request) {
     );
   }
 
+  const data = dataRaw as any[];
   const lastItem = data?.[data.length - 1];
   const nextCursor = data?.length === limit ? lastItem?.created_at : null;
 
@@ -101,11 +102,13 @@ export async function POST(request: Request) {
 
   const db = createServerClient();
 
-  const { data: existing } = await db
+  const { data: existingRaw } = await db
     .from("users")
     .select("id")
     .eq("email", email)
     .single();
+
+  const existing = existingRaw as any;
 
   if (existing) {
     return NextResponse.json(
@@ -114,11 +117,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: newUser, error } = await db
-    .from("users")
+  const { data: newUserRaw, error } = await (db.from("users") as any)
     .insert({ email, role, name: name ?? null, is_active: true })
     .select()
     .single();
+
+  const newUser = newUserRaw as any;
 
   if (error || !newUser) {
     console.error("Failed to invite user", { cause: error });

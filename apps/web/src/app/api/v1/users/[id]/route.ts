@@ -70,12 +70,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { data: updatedUser, error } = await db
-    .from("users")
+  const { data: updatedUserRaw, error } = await (db.from("users") as any)
     .update(updates)
     .eq("id", id)
     .select()
     .single();
+
+  const updatedUser = updatedUserRaw as any;
 
   if (error) {
     if (error.code === "PGRST116") {

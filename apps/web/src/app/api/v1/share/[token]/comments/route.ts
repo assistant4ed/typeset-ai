@@ -12,11 +12,13 @@ const MAX_AUTHOR_LENGTH = 100;
 export async function GET(_request: Request, { params }: RouteParams) {
   const db = createServerClient();
 
-  const { data: shareLink } = await db
+  const { data: shareLinkRaw } = await db
     .from("share_links")
     .select("id, project_id, permissions, expires_at")
     .eq("token", params.token)
     .single();
+
+  const shareLink = shareLinkRaw as any;
 
   if (!shareLink) {
     return NextResponse.json(
@@ -32,7 +34,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     );
   }
 
-  const { data: comments, error } = await db
+  const { data: commentsRaw, error } = await db
     .from("comments")
     .select("id, page_number, x_position, y_position, content, author_name, resolved, created_at")
     .eq("project_id", shareLink.project_id)
@@ -46,17 +48,19 @@ export async function GET(_request: Request, { params }: RouteParams) {
     );
   }
 
-  return NextResponse.json({ data: comments ?? [], requestId: crypto.randomUUID() });
+  return NextResponse.json({ data: (commentsRaw as any) ?? [], requestId: crypto.randomUUID() });
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
   const db = createServerClient();
 
-  const { data: shareLink } = await db
+  const { data: shareLinkRaw } = await db
     .from("share_links")
     .select("id, project_id, permissions, expires_at")
     .eq("token", params.token)
     .single();
+
+  const shareLink = shareLinkRaw as any;
 
   if (!shareLink) {
     return NextResponse.json(
@@ -125,8 +129,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { data: comment, error } = await db
-    .from("comments")
+  const { data: commentRaw, error } = await (db.from("comments") as any)
     .insert({
       project_id: shareLink.project_id,
       page_number: page_number ?? 1,
@@ -140,6 +143,8 @@ export async function POST(request: Request, { params }: RouteParams) {
     })
     .select()
     .single();
+
+  const comment = commentRaw as any;
 
   if (error || !comment) {
     console.error("Failed to insert comment", { cause: error });

@@ -19,11 +19,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: project, error } = await db
+  const { data: projectRaw, error } = await db
     .from("projects")
     .select("*")
     .eq("id", params.id)
     .single();
+
+  const project = projectRaw as any;
 
   if (error || !project) {
     return NextResponse.json(
@@ -83,11 +85,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: existing } = await db
+  const { data: existingRaw } = await db
     .from("projects")
     .select("id, status")
     .eq("id", params.id)
     .single();
+
+  const existing = existingRaw as any;
 
   if (!existing) {
     return NextResponse.json(
@@ -110,12 +114,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { data: updated, error } = await db
-    .from("projects")
+  const { data: updatedRaw, error } = await (db.from("projects") as any)
     .update(updates)
     .eq("id", params.id)
     .select()
     .single();
+
+  const updated = updatedRaw as any;
 
   if (error || !updated) {
     console.error("Failed to update project", { cause: error });
@@ -143,13 +148,15 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: existing } = await db
+  const { data: existingDeleteRaw } = await db
     .from("projects")
     .select("id, name")
     .eq("id", params.id)
     .single();
 
-  if (!existing) {
+  const existingDelete = existingDeleteRaw as any;
+
+  if (!existingDelete) {
     return NextResponse.json(
       { error: { code: "NOT_FOUND", message: "Project not found" } },
       { status: 404 }
@@ -168,7 +175,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
   await logActivity(null, session!.user.id, "project_deleted", {
     deleted_project_id: params.id,
-    deleted_project_name: existing.name,
+    deleted_project_name: existingDelete.name,
   });
 
   return new Response(null, { status: 204 });

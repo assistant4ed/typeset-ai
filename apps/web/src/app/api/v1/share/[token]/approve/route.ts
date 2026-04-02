@@ -9,11 +9,13 @@ interface RouteParams {
 export async function POST(request: Request, { params }: RouteParams) {
   const db = createServerClient();
 
-  const { data: shareLink } = await db
+  const { data: shareLinkRaw } = await db
     .from("share_links")
     .select("id, project_id, permissions, expires_at")
     .eq("token", params.token)
     .single();
+
+  const shareLink = shareLinkRaw as any;
 
   if (!shareLink) {
     return NextResponse.json(
@@ -47,8 +49,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   // Update the project status to 'completed'
-  await db
-    .from("projects")
+  await (db.from("projects") as any)
     .update({ status: "completed" })
     .eq("id", shareLink.project_id);
 

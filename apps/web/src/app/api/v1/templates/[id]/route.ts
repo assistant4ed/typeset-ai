@@ -18,11 +18,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: template, error } = await db
+  const { data: templateRaw, error } = await db
     .from("templates")
     .select("*")
     .eq("id", params.id)
     .single();
+
+  const template = templateRaw as any;
 
   if (error || !template) {
     return NextResponse.json(
@@ -52,11 +54,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: existing } = await db
+  const { data: existingRaw } = await db
     .from("templates")
     .select("id, is_system, created_by")
     .eq("id", params.id)
     .single();
+
+  const existing = existingRaw as any;
 
   if (!existing) {
     return NextResponse.json(
@@ -107,12 +111,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { data: updated, error } = await db
-    .from("templates")
+  const { data: updatedRaw, error } = await (db.from("templates") as any)
     .update(updates)
     .eq("id", params.id)
     .select()
     .single();
+
+  const updated = updatedRaw as any;
 
   if (error || !updated) {
     console.error("Failed to update template", { cause: error });
@@ -141,11 +146,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const { data: existing } = await db
+  const { data: existingRaw } = await db
     .from("templates")
     .select("id, is_system, created_by")
     .eq("id", params.id)
     .single();
+
+  const existing = existingRaw as any;
 
   if (!existing) {
     return NextResponse.json(

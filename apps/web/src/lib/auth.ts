@@ -23,17 +23,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const db = createServerClient();
 
-      const { data: existingUser } = await db
+      const { data: existingUserRaw } = await db
         .from("users")
         .select("id, is_active")
         .eq("email", user.email)
         .single();
 
+      const existingUser = existingUserRaw as any;
+
       if (existingUser) {
         if (!existingUser.is_active) return false;
 
-        await db
-          .from("users")
+        await (db.from("users") as any)
           .update({
             name: user.name ?? undefined,
             avatar_url: user.image ?? undefined,
@@ -52,7 +53,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const role: UserRole = count === 0 ? "admin" : "viewer";
 
-      const { error } = await db.from("users").insert({
+      const { error } = await (db.from("users") as any).insert({
         email: user.email,
         name: user.name ?? null,
         avatar_url: user.image ?? null,
@@ -74,11 +75,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!session.user?.email) return session;
 
       const db = createServerClient();
-      const { data: dbUser } = await db
+      const { data: dbUserRaw } = await db
         .from("users")
         .select("id, role, is_active")
         .eq("email", session.user.email)
-        .single<Pick<DbUser, "id" | "role" | "is_active">>();
+        .single();
+
+      const dbUser = dbUserRaw as any;
 
       if (!dbUser || !dbUser.is_active) {
         // Force sign-out by returning an empty session

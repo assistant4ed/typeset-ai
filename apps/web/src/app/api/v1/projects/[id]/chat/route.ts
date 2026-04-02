@@ -31,7 +31,7 @@ async function getOrCreateSession(
   const existing = chatSessionStore.get(projectId);
   if (existing) return existing;
 
-  const [{ data: styles }, { data: content }] = await Promise.all([
+  const [{ data: stylesRaw }, { data: contentRaw }] = await Promise.all([
     db
       .from("project_styles")
       .select("css_content")
@@ -48,6 +48,8 @@ async function getOrCreateSession(
       .maybeSingle(),
   ]);
 
+  const styles = stylesRaw as any;
+  const content = contentRaw as any;
   const currentCss = styles?.css_content ?? "";
   const contentTree = (content?.content_tree ?? {
     metadata: { title: "Untitled", author: "", source: "manual", pageCount: 0 },
@@ -182,7 +184,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     // Persist updated CSS to project_styles
     if (response.isApplied) {
-      const { data: latestStyles } = await db
+      const { data: latestStylesRaw } = await db
         .from("project_styles")
         .select("version")
         .eq("project_id", params.id)
@@ -190,9 +192,10 @@ export async function POST(request: Request, { params }: RouteParams) {
         .limit(1)
         .maybeSingle();
 
+      const latestStyles = latestStylesRaw as any;
       const nextVersion = (latestStyles?.version ?? 0) + 1;
 
-      await db.from("project_styles").insert({
+      await (db.from("project_styles") as any).insert({
         project_id: params.id,
         css_content: response.css,
         version: nextVersion,

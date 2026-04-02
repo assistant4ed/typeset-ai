@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     query = query.lt("created_at", cursor);
   }
 
-  const { data, error, count } = await query;
+  const { data: dataRaw, error, count } = await query;
 
   if (error) {
     console.error("Failed to list templates", { cause: error });
@@ -56,6 +56,7 @@ export async function GET(request: Request) {
     );
   }
 
+  const data = dataRaw as any[];
   const lastItem = data?.[data.length - 1];
   const nextCursor = data?.length === limit ? lastItem?.created_at : null;
 
@@ -113,8 +114,7 @@ export async function POST(request: Request) {
 
   const db = createServerClient();
 
-  const { data: template, error } = await db
-    .from("templates")
+  const { data: templateRaw, error } = await (db.from("templates") as any)
     .insert({
       name: name.trim(),
       description: description ?? null,
@@ -126,6 +126,8 @@ export async function POST(request: Request) {
     })
     .select()
     .single();
+
+  const template = templateRaw as any;
 
   if (error || !template) {
     console.error("Failed to create template", { cause: error });

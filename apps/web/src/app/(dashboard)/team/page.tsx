@@ -19,5 +19,5 @@ export default async function TeamPage() {
     .select("id, email, name, avatar_url, role, is_active, created_at")
     .order("created_at", { ascending: true });
 
-  return <TeamPageClient users={users ?? []} currentUserId={session.user.id} />;
+  return <TeamPageClient users={(users as any) ?? []} currentUserId={session.user.id} />;
 }

@@ -10,19 +10,23 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const db = createServerClient();
-  const { data: shareLink } = await db
+  const { data: shareLinkRaw } = await db
     .from("share_links")
     .select("project_id")
     .eq("token", params.token)
     .single();
 
+  const shareLink = shareLinkRaw as any;
+
   if (!shareLink) return { title: "Not Found" };
 
-  const { data: project } = await db
+  const { data: projectRaw } = await db
     .from("projects")
     .select("name")
     .eq("id", shareLink.project_id)
     .single();
+
+  const project = projectRaw as any;
 
   return {
     title: project ? `Review: ${project.name}` : "Proof Review",
@@ -33,11 +37,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ShareViewerPage({ params }: PageProps) {
   const db = createServerClient();
 
-  const { data: shareLink } = await db
+  const { data: shareLinkRaw } = await db
     .from("share_links")
     .select("id, project_id, permissions, expires_at")
     .eq("token", params.token)
     .single();
+
+  const shareLink = shareLinkRaw as any;
 
   if (!shareLink) notFound();
 
@@ -54,7 +60,7 @@ export default async function ShareViewerPage({ params }: PageProps) {
     );
   }
 
-  const [{ data: project }, { data: comments }] = await Promise.all([
+  const [{ data: projectRaw }, { data: commentsRaw }] = await Promise.all([
     db.from("projects").select("name, page_count").eq("id", shareLink.project_id).single(),
     db
       .from("comments")
@@ -63,6 +69,9 @@ export default async function ShareViewerPage({ params }: PageProps) {
       .eq("resolved", false)
       .order("created_at", { ascending: true }),
   ]);
+
+  const project = projectRaw as any;
+  const comments = commentsRaw as any;
 
   if (!project) notFound();
 

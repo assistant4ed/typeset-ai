@@ -47,7 +47,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 function NavLink({ href, label, icon }: NavItem) {
   return (
     <Link
-      href={href}
+      href={href as any}
       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
       {icon}

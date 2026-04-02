@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSession, handleAuthError } from "@/lib/rbac";
 import { createServerClient } from "@/lib/supabase/server";
-import { buildHtml, runPreflight } from "@typeset-ai/core";
+import { runPreflight } from "@typeset-ai/core";
 import type { ContentTree } from "@typeset-ai/core";
 
 interface RouteParams {
@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const db = createServerClient();
 
-  const [{ data: styles }, { data: content }] = await Promise.all([
+  const [{ data: stylesRaw }, { data: contentRaw }] = await Promise.all([
     db
       .from("project_styles")
       .select("css_content")
@@ -35,6 +35,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
       .maybeSingle(),
   ]);
 
+  const styles = stylesRaw as any;
+  const content = contentRaw as any;
+
   if (!content) {
     return NextResponse.json(
       { error: { code: "NOT_FOUND", message: "No content found for this project" } },
@@ -44,8 +47,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const contentTree = content.content_tree as ContentTree;
   const css = styles?.css_content ?? "";
-  const html = buildHtml(contentTree, css);
-  const result = await runPreflight(html);
+  const result = runPreflight(contentTree, css);
 
   return NextResponse.json({ data: result, requestId: crypto.randomUUID() });
 }

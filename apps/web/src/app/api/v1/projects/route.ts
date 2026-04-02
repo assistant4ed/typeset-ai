@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     query = query.eq("assigned_to", session!.user.id);
   }
 
-  const { data, error, count } = await query;
+  const { data: dataRaw, error, count } = await query;
 
   if (error) {
     console.error("Failed to list projects", { cause: error });
@@ -67,6 +67,7 @@ export async function GET(request: Request) {
     );
   }
 
+  const data = dataRaw as any[];
   const lastItem = data?.[data.length - 1];
   const nextCursor = data?.length === limit ? lastItem?.updated_at : null;
 
@@ -121,13 +122,12 @@ export async function POST(request: Request) {
 
   const db = createServerClient();
 
-  const { data: project, error } = await db
-    .from("projects")
+  const { data: projectRaw, error } = await (db.from("projects") as any)
     .insert({
       name: name.trim(),
       description: description ?? null,
       book_type,
-      page_size: page_size as never,
+      page_size,
       status: "draft",
       assigned_to: assigned_to ?? null,
       created_by: session!.user.id,
@@ -135,6 +135,8 @@ export async function POST(request: Request) {
     })
     .select()
     .single();
+
+  const project = projectRaw as any;
 
   if (error || !project) {
     console.error("Failed to create project", { cause: error });

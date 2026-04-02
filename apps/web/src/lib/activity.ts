@@ -14,7 +14,7 @@ export async function logActivity(
 ): Promise<void> {
   try {
     const db = createServerClient();
-    const { error } = await db.from("activity_log").insert({
+    const { error } = await (db.from("activity_log") as any).insert({
       project_id: projectId,
       user_id: userId,
       action,
@@ -76,7 +76,7 @@ export async function getProjectActivity(
     throw new Error("Failed to fetch project activity", { cause: error });
   }
 
-  const entries = (data ?? []) as ActivityEntry[];
+  const entries = (data ?? []) as unknown as ActivityEntry[];
   const lastEntry = entries[entries.length - 1];
   const nextCursor = entries.length === limit ? (lastEntry?.created_at ?? null) : null;
 

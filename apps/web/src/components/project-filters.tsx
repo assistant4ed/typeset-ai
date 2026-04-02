@@ -53,7 +53,7 @@ export function ProjectFilters({ teamMembers = [] }: ProjectFiltersProps) {
         params.delete(key);
       }
       params.delete("cursor"); // Reset pagination on filter change
-      router.push(`${pathname}?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}` as any);
     },
     [pathname, router, searchParams]
   );
