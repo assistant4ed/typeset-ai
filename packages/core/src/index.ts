@@ -16,3 +16,7 @@ export type {
 export { parseMarkdown } from "./content-parser.js";
 export { buildHtml } from "./html-builder.js";
 export { runPreflight } from "./preflight.js";
+export { generateLayout } from "./ai-layout.js";
+export { scanReference } from "./reference-scanner.js";
+export type { ScanResult } from "./reference-scanner.js";
+export { renderPdf } from "./pdf-renderer.js";
