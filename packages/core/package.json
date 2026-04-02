@@ -1,0 +1,22 @@
+{
+  "name": "@typeset-ai/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.39.0",
+    "mammoth": "1.8.0",
+    "unified": "11.0.5",
+    "rehype-parse": "9.0.1",
+    "rehype-stringify": "10.0.1",
+    "rehype-sanitize": "6.0.0",
+    "pdfjs-dist": "4.0.379",
+    "puppeteer": "21.7.0",
+    "pagedjs": "0.4.3"
+  }
+}
