@@ -34,6 +34,10 @@ const PLACEHOLDER_HTML = `<!DOCTYPE html>
 </html>`;
 
 const DEFAULT_CSS = `
+@page {
+  size: 210mm 297mm;
+  margin: 20mm 15mm 25mm 20mm;
+}
 body {
   font-family: Georgia, serif;
   font-size: 12pt;
@@ -72,6 +76,16 @@ blockquote {
   color: #555;
   border-left: 2pt solid #ddd;
   padding-left: 5mm;
+}
+.chapter {
+  break-before: page;
+}
+.chapter:first-child {
+  break-before: auto;
+}
+p, h2, h3, li {
+  orphans: 2;
+  widows: 2;
 }
 `;
 
@@ -215,11 +229,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* Base page setup for A4 */
-@page {
-  size: 210mm 297mm;
-  margin: 20mm 15mm 25mm 20mm;
-}
 @media screen {
   body {
     background: #e5e7eb;

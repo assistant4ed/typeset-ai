@@ -3,10 +3,12 @@ import puppeteer from "puppeteer";
 import type { RenderOptions } from "./types.js";
 
 const PAGED_JS_READY_CHECK = `
-  () => {
-    return typeof window.PagedPolyfill !== 'undefined'
-      ? window.PagedPolyfill.ready
-      : true;
+  async () => {
+    if (typeof window.PagedPolyfill !== 'undefined') {
+      await window.PagedPolyfill.ready;
+      return true;
+    }
+    return true;
   }
 `;
 

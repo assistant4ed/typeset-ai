@@ -55,7 +55,7 @@ export function buildHtml(content: ContentTree, css: string): string {
   const raw = (content as unknown as Record<string, unknown>).raw;
   let body = chapters;
   if (!body && typeof raw === "string" && raw.length > 0) {
-    body = raw
+    const paragraphs = raw
       .split("\n\n")
       .map((p) => {
         const trimmed = p.trim();
@@ -67,6 +67,7 @@ export function buildHtml(content: ContentTree, css: string): string {
         return `<p>${trimmed}</p>`;
       })
       .join("\n");
+    body = `<section class="chapter" data-chapter="1"><section class="section">\n${paragraphs}\n</section></section>`;
   }
 
   return `<!DOCTYPE html>

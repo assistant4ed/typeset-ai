@@ -229,6 +229,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     source: bookType ? "template" : referenceTemplateId ? "shared_reference" : "reference_image",
   });
 
+  // Invalidate chat session so it picks up the new CSS on next message
+  const { chatSessionStore } = await import("@/lib/chat-session-store");
+  chatSessionStore.delete(params.id);
+
   return NextResponse.json({
     data: {
       id: savedStyle.id,

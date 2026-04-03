@@ -85,7 +85,9 @@ export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
       </div>
 
       {/* Preview area */}
-      <div className="flex-1 overflow-auto bg-gray-100 p-4">
+      <div className="flex-1 overflow-auto bg-gray-100 p-4"
+        style={{ height: "calc(100vh - 50px)" }}
+      >
         {isLoading && (
           <div className="flex items-center justify-center h-full">
             <Spinner label="Loading preview..." />
@@ -96,23 +98,24 @@ export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
             Failed to load preview
           </div>
         )}
-        {/* Preview container — Paged.js renders pages inside the iframe */}
+        {/* Preview container — scale the wrapper, keep iframe at natural width */}
         <div
-          className="mx-auto overflow-hidden"
-          style={{ width: `${PAGE_WIDTH_MM * scale}mm` }}
+          className="mx-auto"
+          style={{
+            width: `${PAGE_WIDTH_MM}mm`,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
           aria-hidden={isLoading || hasError}
         >
           <iframe
             key={refreshKey}
             src={previewUrl}
             title="Page preview"
-            className="border-0 w-full"
+            className="border-0 w-full bg-transparent"
             style={{
-              width: `${PAGE_WIDTH_MM / scale}mm`,
-              minHeight: "80vh",
-              height: "2000px",
-              transform: `scale(${scale})`,
-              transformOrigin: "top left",
+              width: `${PAGE_WIDTH_MM}mm`,
+              minHeight: "200vh",
               display: "block",
             }}
             onLoad={handleLoad}

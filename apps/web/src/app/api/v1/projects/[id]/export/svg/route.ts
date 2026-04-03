@@ -48,7 +48,15 @@ export async function POST(_request: Request, { params }: RouteParams) {
     );
   }
 
-  const contentTree = content.content_tree as ContentTree;
+  const rawTree = (content as any).content_tree ?? {};
+  const contentTree = {
+    metadata: rawTree.metadata ?? { title: "Untitled", author: "", source: "manual", pageCount: 0 },
+    frontMatter: rawTree.frontMatter ?? [],
+    chapters: rawTree.chapters ?? [],
+    backMatter: rawTree.backMatter ?? [],
+    assets: rawTree.assets ?? [],
+    raw: rawTree.raw ?? "",
+  } as ContentTree;
   const css = styles?.css_content ?? "";
   const html = buildHtml(contentTree, css);
 

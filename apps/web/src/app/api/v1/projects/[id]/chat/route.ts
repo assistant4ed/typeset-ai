@@ -196,6 +196,37 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const response = await sendChatMessage(chatSession, message.trim(), imageTmpPath);
 
+    // Persist chat messages to DB
+    let { data: conversation } = await db
+      .from("chat_conversations")
+      .select("id")
+      .eq("project_id", params.id)
+      .maybeSingle();
+
+    const conv = conversation as any;
+    let conversationId = conv?.id;
+    if (!conversationId) {
+      const { data: newConv } = await (db.from("chat_conversations") as any)
+        .insert({ project_id: params.id })
+        .select("id")
+        .single();
+      conversationId = (newConv as any)?.id;
+    }
+
+    if (conversationId) {
+      await (db.from("chat_messages") as any).insert({
+        conversation_id: conversationId,
+        role: "user",
+        content: message.trim(),
+      });
+      await (db.from("chat_messages") as any).insert({
+        conversation_id: conversationId,
+        role: "assistant",
+        content: response.message,
+        css_diff: response.diff?.patch ?? null,
+      });
+    }
+
     // Persist updated CSS to project_styles
     if (response.isApplied) {
       const { data: latestStylesRaw } = await db
@@ -268,8 +299,26 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     );
   }
 
+  const db = createServerClient();
+
   if (action === "undo") {
     const success = undoLastChange(session);
+    if (success) {
+      const { data: latestRaw } = await db
+        .from("project_styles")
+        .select("version")
+        .eq("project_id", params.id)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const latest = latestRaw as any;
+      const nextVersion = (latest?.version ?? 0) + 1;
+      await (db.from("project_styles") as any).insert({
+        project_id: params.id,
+        css_content: session.currentCss,
+        version: nextVersion,
+      });
+    }
     return NextResponse.json({
       data: {
         success,
@@ -283,6 +332,22 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
   if (action === "redo") {
     const success = redoLastChange(session);
+    if (success) {
+      const { data: latestRaw } = await db
+        .from("project_styles")
+        .select("version")
+        .eq("project_id", params.id)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const latest = latestRaw as any;
+      const nextVersion = (latest?.version ?? 0) + 1;
+      await (db.from("project_styles") as any).insert({
+        project_id: params.id,
+        css_content: session.currentCss,
+        version: nextVersion,
+      });
+    }
     return NextResponse.json({
       data: {
         success,
