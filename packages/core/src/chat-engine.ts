@@ -28,7 +28,7 @@ function summarizeContent(content: ContentTree): string {
   const chapters = content.chapters ?? [];
   const assets = content.assets ?? [];
   const metadata = content.metadata ?? { title: "Untitled", author: "" };
-  const raw = (content as Record<string, unknown>).raw;
+  const raw = (content as unknown as Record<string, unknown>).raw;
 
   if (chapters.length === 0 && typeof raw === "string" && raw.length > 0) {
     const wordCount = raw.split(/\s+/).length;
