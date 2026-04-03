@@ -35,7 +35,7 @@ export function WorkspaceLayout({
   sharedReferences,
   activityPanel,
 }: WorkspaceLayoutProps) {
-  const [currentCss, setCurrentCss] = useState(initialCss || "");
+  const [currentDesign, setCurrentDesign] = useState(initialCss || "");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [pageWidth, setPageWidth] = useState(DEFAULT_PAGE_WIDTH);
   const [pageHeight, setPageHeight] = useState(DEFAULT_PAGE_HEIGHT);
@@ -45,16 +45,16 @@ export function WorkspaceLayout({
     setRefreshTrigger((t) => t + 1);
   }
 
-  function handleStyleChangeFromChat(css: string) {
-    if (css) {
-      setCurrentCss(css);
+  function handleStyleChangeFromChat(design: string) {
+    if (design) {
+      setCurrentDesign(design);
       triggerRefresh();
     }
   }
 
-  function handleStyleApplied(_bookType: string, css: string) {
-    if (css) {
-      setCurrentCss(css);
+  function handleStyleApplied(_bookType: string, design: string) {
+    if (design) {
+      setCurrentDesign(design);
       triggerRefresh();
     }
   }
@@ -73,9 +73,9 @@ export function WorkspaceLayout({
     triggerRefresh();
   }
 
-  function handleUndoRedoCss(css: string) {
-    if (css) {
-      setCurrentCss(css);
+  function handleUndoRedoDesign(design: string) {
+    if (design) {
+      setCurrentDesign(design);
       triggerRefresh();
     }
   }
@@ -89,7 +89,7 @@ export function WorkspaceLayout({
       <div className="hidden w-[55%] shrink-0 border-r border-gray-200 lg:flex lg:flex-col">
         <LivePreview
           projectId={projectId}
-          currentCss={currentCss}
+          currentDesign={currentDesign}
           pageWidth={pageWidth}
           pageHeight={pageHeight}
           bleed={bleed}
@@ -123,9 +123,9 @@ export function WorkspaceLayout({
           chatPanel={
             <ChatPanel
               projectId={projectId}
-              initialCss={currentCss}
+              initialCss={currentDesign}
               onStyleChange={handleStyleChangeFromChat}
-              onUndoRedoCss={handleUndoRedoCss}
+              onUndoRedoCss={handleUndoRedoDesign}
             />
           }
           exportPanel={<ExportPanel projectId={projectId} />}

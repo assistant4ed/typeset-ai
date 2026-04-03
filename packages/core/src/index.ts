@@ -36,3 +36,11 @@ export {
   redoLastChange,
   getChatHistory,
 } from "./chat-engine.js";
+export {
+  contentToTypst,
+  renderToPdf,
+  renderToHtml,
+  renderToSvg,
+  getPageCount,
+} from "./typst-renderer.js";
+export type { TypstRenderOptions, TypstRenderResult } from "./typst-renderer.js";

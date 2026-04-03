@@ -38,21 +38,28 @@ function summarizeContent(content: ContentTree): string {
   ].join("\n");
 }
 
-function extractCssFromResponse(response: string): string {
-  const match = response.match(/```css\s*([\s\S]*?)```/);
-  if (match) {
-    return match[1].trim();
-  }
+function extractTypstFromResponse(response: string): string {
+  const typstMatch = response.match(/```typst\s*([\s\S]*?)```/);
+  if (typstMatch) return typstMatch[1].trim();
+  // Fallback: also check for CSS blocks for backward compatibility
+  const cssMatch = response.match(/```css\s*([\s\S]*?)```/);
+  if (cssMatch) return cssMatch[1].trim();
+  // Generic code block as last resort
+  const genericMatch = response.match(/```\s*([\s\S]*?)```/);
+  if (genericMatch) return genericMatch[1].trim();
   return "";
 }
 
 function extractMessageFromResponse(response: string): string {
-  const withoutCss = response.replace(/```css[\s\S]*?```/, "").trim();
-  return withoutCss || response;
+  const withoutCode = response
+    .replace(/```typst[\s\S]*?```/, "")
+    .replace(/```css[\s\S]*?```/, "")
+    .trim();
+  return withoutCode || response;
 }
 
-function generateCssDiff(before: string, after: string): CssDiff {
-  const patch = createPatch("layout.css", before, after, "previous", "updated");
+function generateDesignDiff(before: string, after: string): CssDiff {
+  const patch = createPatch("layout.typ", before, after, "previous", "updated");
   return { before, after, patch };
 }
 
@@ -60,22 +67,26 @@ function buildSystemPrompt(content: ContentTree, currentCss: string): string {
   const contentSummary = summarizeContent(content);
 
   return [
-    "You are an expert book designer helping a designer refine a CSS layout for print.",
-    "The designer will describe changes they want. You must:",
+    "You are an expert book designer. You help designers create beautiful book layouts using the Typst typesetting language.",
+    "",
+    "When the designer requests changes, you must:",
     "1. Understand their request in the context of the current layout.",
-    "2. Modify the CSS accordingly.",
+    "2. Generate Typst markup that implements the design.",
     "3. Explain what you changed and why.",
-    "4. Return the COMPLETE updated CSS in a ```css code block.",
+    "4. Return the COMPLETE Typst design code in a ```typst code block.",
     "",
     "Important rules:",
-    "- Always return the FULL CSS, not just the changed parts.",
-    "- Use CSS Paged Media specification (@page, @top-center, etc.).",
-    "- Use print-appropriate units: mm, cm, in, pt — avoid px.",
+    "- Use Typst syntax (not CSS, not LaTeX).",
+    "- Use #set page() for page dimensions.",
+    "- Use #set text() for font settings.",
+    "- Use #show heading for heading styles.",
+    "- Use professional typography (proper margins, line spacing, font sizes).",
+    "- Always return the FULL design code, not just changes.",
     "- Preserve existing styles unless the user explicitly asks to change them.",
     "",
     `Book content summary:\n${contentSummary}`,
     "",
-    `Current CSS:\n\`\`\`css\n${currentCss}\n\`\`\``,
+    `Current Typst design:\n\`\`\`typst\n${currentCss}\n\`\`\``,
   ].join("\n");
 }
 
@@ -156,7 +167,7 @@ export async function sendChatMessage(
 
   const rawText = response.text ?? "";
 
-  const newCss = extractCssFromResponse(rawText);
+  const newDesign = extractTypstFromResponse(rawText);
   const message = extractMessageFromResponse(rawText);
 
   const assistantMessage: ChatMessage = {
@@ -166,15 +177,15 @@ export async function sendChatMessage(
   };
   session.history.push(assistantMessage);
 
-  if (newCss) {
-    const diff = generateCssDiff(session.currentCss, newCss);
+  if (newDesign) {
+    const diff = generateDesignDiff(session.currentCss, newDesign);
     session.undoStack.push(session.currentCss);
     session.redoStack = [];
-    session.currentCss = newCss;
+    session.currentCss = newDesign;
 
     return {
       message,
-      css: newCss,
+      css: newDesign,
       diff,
       isApplied: true,
     };

@@ -186,7 +186,7 @@ export function ChatPanel({
           size="sm"
           onClick={handleUndo}
           disabled={!canUndo}
-          aria-label="Undo last CSS change"
+          aria-label="Undo last design change"
           title="Undo"
         >
           <svg
@@ -210,7 +210,7 @@ export function ChatPanel({
           size="sm"
           onClick={handleRedo}
           disabled={!canRedo}
-          aria-label="Redo last CSS change"
+          aria-label="Redo last design change"
           title="Redo"
         >
           <svg
@@ -273,7 +273,7 @@ export function ChatPanel({
               {msg.diff?.patch && msg.isApplied && (
                 <div className="mt-3">
                   <p className="mb-1 text-xs font-medium text-gray-500">
-                    CSS changes applied:
+                    Design changes applied:
                   </p>
                   <CssDiffView patch={msg.diff.patch} />
                 </div>

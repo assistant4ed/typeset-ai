@@ -25,7 +25,7 @@ export function CssDiffView({ patch }: CssDiffViewProps) {
 
   return (
     <div
-      aria-label="CSS changes"
+      aria-label="Design changes"
       className="overflow-auto rounded-lg border border-gray-200 font-mono text-xs"
     >
       {lines.map((line, idx) => {

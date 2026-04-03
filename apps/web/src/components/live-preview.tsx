@@ -12,7 +12,7 @@ const MM_TO_PX_AT_96DPI = 3.78;
 
 interface LivePreviewProps {
   projectId: string;
-  currentCss: string;
+  currentDesign: string;
   pageWidth: number;
   pageHeight: number;
   bleed: number;
@@ -21,7 +21,7 @@ interface LivePreviewProps {
 
 export function LivePreview({
   projectId,
-  currentCss,
+  currentDesign,
   pageWidth,
   pageHeight,
   bleed,
@@ -43,7 +43,7 @@ export function LivePreview({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            css: currentCss,
+            designMarkup: currentDesign,
             pageWidth,
             pageHeight,
             bleed,
@@ -55,7 +55,7 @@ export function LivePreview({
         const json = await res.json().catch(() => ({}));
         throw new Error(
           (json as Record<string, Record<string, string>>).error?.message ??
-            "Render failed",
+            `Render failed (${res.status})`,
         );
       }
 
@@ -70,20 +70,11 @@ export function LivePreview({
     } finally {
       setIsRendering(false);
     }
-  }, [projectId, currentCss, pageWidth, pageHeight, bleed]);
+  }, [projectId, currentDesign, pageWidth, pageHeight, bleed]);
 
-  // Re-render when CSS, page settings, or refreshTrigger change
-  useEffect(() => {
-    if (currentCss || refreshTrigger > 0) {
-      renderPreview();
-    }
-  }, [renderPreview, refreshTrigger]);
-
-  // Initial render on mount
   useEffect(() => {
     renderPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [renderPreview, refreshTrigger]);
 
   function zoomOut() {
     setScale((s) => Math.max(MIN_SCALE, s - SCALE_STEP));
@@ -98,6 +89,7 @@ export function LivePreview({
   }
 
   const aspectRatio = pageWidth / pageHeight;
+  const pageWidthPx = pageWidth * MM_TO_PX_AT_96DPI * (scale / 100);
   const isFirstLoad = isRendering && pages.length === 0;
   const hasPages = pages.length > 0;
   const isEmpty = !error && !hasPages && !isRendering;
@@ -107,24 +99,27 @@ export function LivePreview({
       {/* Controls bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Preview</span>
+          <span className="text-sm font-medium text-gray-700">Preview</span>
           {hasPages && (
-            <span className="text-xs text-gray-400" aria-live="polite">
+            <span
+              className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full"
+              aria-live="polite"
+            >
               {pages.length} page{pages.length !== 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={zoomOut}
             disabled={scale <= MIN_SCALE}
             className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Zoom out"
           >
-            −
+            &minus;
           </button>
           <span
-            className="text-sm text-gray-600 w-12 text-center"
+            className="text-xs text-gray-500 w-10 text-center"
             aria-live="polite"
             aria-atomic="true"
           >
@@ -140,45 +135,45 @@ export function LivePreview({
           </button>
           <button
             onClick={resetZoom}
-            className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+            className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 ml-1"
           >
             Fit
           </button>
           <button
             onClick={renderPreview}
             disabled={isRendering}
-            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 ml-2"
             aria-label={isRendering ? "Rendering in progress" : "Refresh preview"}
           >
-            {isRendering ? "Rendering..." : "Refresh"}
+            {isRendering ? "..." : "Refresh"}
           </button>
         </div>
       </div>
 
       {/* Pages display */}
-      <div className="flex-1 overflow-auto bg-gray-200 p-4">
+      <div className="flex-1 overflow-auto bg-gray-200 p-6">
         {isFirstLoad && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <Spinner size="lg" label="Rendering pages..." />
+            <Spinner size="lg" label="Typesetting..." />
             <p className="text-sm text-gray-500">
-              Generating preview with Chromium...
+              Rendering with Typst engine...
             </p>
           </div>
         )}
 
-        {error && (
+        {error && !isRendering && (
           <div className="flex items-center justify-center h-full">
             <div
               className="bg-red-50 text-red-700 rounded-lg px-6 py-4 text-sm max-w-md text-center"
               role="alert"
             >
               <p className="font-medium">Render failed</p>
-              <p className="mt-1 text-red-500">{error}</p>
+              <p className="mt-1 text-red-500 text-xs">{error}</p>
               <button
                 onClick={renderPreview}
                 className="mt-3 px-4 py-1.5 bg-red-100 rounded hover:bg-red-200 text-red-700"
               >
-                Try Again
+                Retry
               </button>
             </div>
           </div>
@@ -190,7 +185,7 @@ export function LivePreview({
               <p className="text-4xl mb-2" aria-hidden="true">
                 &mdash;
               </p>
-              <p>Upload content and apply a style to see preview</p>
+              <p className="text-sm">Upload content and apply a style</p>
             </div>
           </div>
         )}
@@ -199,27 +194,26 @@ export function LivePreview({
           <div className="relative">
             {isRendering && (
               <div
-                className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-3 py-1 rounded-full z-10"
+                className="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full z-10 shadow"
                 role="status"
               >
                 Updating...
               </div>
             )}
             <div className="flex flex-wrap justify-center gap-4">
-              {pages.map((base64, idx) => (
+              {pages.map((svgContent, idx) => (
                 <div
                   key={idx}
-                  className="bg-white shadow-lg flex-shrink-0"
+                  className="bg-white shadow-lg flex-shrink-0 overflow-hidden"
                   style={{
-                    width: `${pageWidth * (scale / 100) * MM_TO_PX_AT_96DPI}px`,
+                    width: `${pageWidthPx}px`,
                     aspectRatio: `${aspectRatio}`,
                   }}
                 >
-                  <img
-                    src={`data:image/png;base64,${base64}`}
-                    alt={`Page ${idx + 1}`}
-                    className="w-full h-full object-contain"
-                    draggable={false}
+                  <div
+                    className="w-full h-full"
+                    dangerouslySetInnerHTML={{ __html: svgContent }}
+                    style={{ width: "100%", height: "100%" }}
                   />
                 </div>
               ))}

@@ -6,7 +6,11 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = config.externals || [];
-      config.externals.push("puppeteer", "puppeteer-core");
+      config.externals.push(
+        "puppeteer",
+        "puppeteer-core",
+        "@myriaddreamin/typst-ts-node-compiler",
+      );
     }
     return config;
   },
