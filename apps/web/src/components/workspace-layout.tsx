@@ -23,184 +23,43 @@ interface WorkspaceLayoutProps {
   activityPanel: React.ReactNode;
 }
 
-const DEFAULT_CSS = `@page {
-  size: 210mm 297mm;
-  margin: 20mm 15mm 25mm 20mm;
-}
-body {
-  font-family: Georgia, serif;
+const DEFAULT_CSS = `body {
+  font-family: "Noto Serif", Georgia, serif;
   font-size: 11pt;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #1a1a1a;
+  padding: 15mm;
 }
 h1 {
-  font-size: 24pt;
+  font-size: 22pt;
   text-align: center;
-  margin-top: 40mm;
-  margin-bottom: 20mm;
+  margin: 30mm 0 15mm 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 h2 {
-  font-size: 18pt;
-  margin-top: 15mm;
-  margin-bottom: 8mm;
+  font-size: 16pt;
+  margin: 12mm 0 6mm 0;
+  font-weight: 600;
 }
 h3 {
-  font-size: 14pt;
-  margin-top: 10mm;
-  margin-bottom: 5mm;
+  font-size: 13pt;
+  margin: 8mm 0 4mm 0;
 }
 p {
   text-indent: 1.5em;
-  margin: 0 0 0.5em 0;
+  margin: 0 0 0.3em 0;
 }
 p:first-of-type {
   text-indent: 0;
 }
 blockquote {
-  margin: 8mm 15mm;
+  margin: 6mm 10mm;
   font-style: italic;
   color: #555;
-  border-left: 2pt solid #ddd;
-  padding-left: 5mm;
-}
-.chapter {
-  break-before: page;
-}
-.chapter:first-child {
-  break-before: auto;
-}
-p, h2, h3, li {
-  orphans: 2;
-  widows: 2;
+  border-left: 2pt solid #ccc;
+  padding-left: 4mm;
 }`;
-
-const SCREEN_STYLES = `@media screen {
-  body {
-    background: #e5e7eb;
-    margin: 0;
-    padding: 20px 0;
-  }
-  .pagedjs_pages {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
-  }
-  .pagedjs_page {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    flex-shrink: 0;
-  }
-}`;
-
-const PLACEHOLDER_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<style>
-  body {
-    font-family: system-ui, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    color: #9ca3af;
-    margin: 0;
-  }
-</style>
-</head>
-<body>
-  <div style="text-align:center">
-    <p style="font-size:48px;margin:0">Upload content to see preview</p>
-  </div>
-</body>
-</html>`;
-
-function buildStyledHtml(raw: string): string {
-  const lines = raw.split("\n");
-  const chapters: string[] = [];
-  let currentChapter = "";
-  let currentSection = "";
-  let chapterNum = 0;
-  let inChapter = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    if (trimmed.startsWith("# ") || (!inChapter && trimmed.length > 0)) {
-      if (currentSection) {
-        currentChapter += `${currentSection}</section>\n`;
-        currentSection = "";
-      }
-      if (inChapter) {
-        chapters.push(`${currentChapter}</section>\n`);
-        currentChapter = "";
-      }
-
-      chapterNum++;
-      const title = trimmed.startsWith("# ") ? trimmed.slice(2) : `Section ${chapterNum}`;
-      currentChapter = `<section class="chapter" data-chapter="${chapterNum}">\n<h1>${title}</h1>\n`;
-      inChapter = true;
-
-      if (!trimmed.startsWith("# ")) {
-        currentSection = `<section class="section">\n<p>${trimmed}</p>\n`;
-      }
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      if (currentSection) {
-        currentChapter += `${currentSection}</section>\n`;
-      }
-      currentSection = `<section class="section">\n<h2>${trimmed.slice(3)}</h2>\n`;
-      continue;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      if (!currentSection) currentSection = `<section class="section">\n`;
-      currentSection += `<h3>${trimmed.slice(4)}</h3>\n`;
-      continue;
-    }
-
-    if (trimmed.startsWith("> ")) {
-      if (!currentSection) currentSection = `<section class="section">\n`;
-      currentSection += `<blockquote><p>${trimmed.slice(2)}</p></blockquote>\n`;
-      continue;
-    }
-
-    if (!inChapter) {
-      chapterNum++;
-      currentChapter = `<section class="chapter" data-chapter="${chapterNum}">\n`;
-      inChapter = true;
-    }
-    if (!currentSection) currentSection = `<section class="section">\n`;
-    currentSection += `<p>${trimmed}</p>\n`;
-  }
-
-  if (currentSection) currentChapter += `${currentSection}</section>\n`;
-  if (inChapter) chapters.push(`${currentChapter}</section>\n`);
-
-  if (chapters.length === 0) {
-    const paragraphs = raw
-      .split("\n")
-      .filter((l) => l.trim())
-      .map((l) => `<p>${l.trim()}</p>`)
-      .join("\n");
-    return `<section class="chapter" data-chapter="1">\n<section class="section">\n${paragraphs}\n</section>\n</section>`;
-  }
-
-  return chapters.join("\n");
-}
-
-function replacePageRule(css: string, newPageRule: string): string {
-  const pageRuleRegex = /@page\s*\{[^}]*\}/;
-  if (pageRuleRegex.test(css)) {
-    return css.replace(pageRuleRegex, newPageRule);
-  }
-  return `${newPageRule}\n${css}`;
-}
 
 export function WorkspaceLayout({
   projectId,
@@ -212,6 +71,8 @@ export function WorkspaceLayout({
   const [currentCss, setCurrentCss] = useState(initialCss || DEFAULT_CSS);
   const [contentRaw, setContentRaw] = useState<string | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
+  const [pageWidth, setPageWidth] = useState(210);
+  const [pageHeight, setPageHeight] = useState(297);
 
   const fetchContent = useCallback(async () => {
     setIsLoadingContent(true);
@@ -220,10 +81,10 @@ export function WorkspaceLayout({
       const json = await res.json();
       if (res.ok && json.data) {
         const raw = json.data.content_tree?.raw ?? null;
-        setContentRaw(raw);
+        setContentRaw(typeof raw === "string" ? raw : null);
       }
     } catch {
-      // Content loading failure is non-critical for initial render
+      // Non-critical
     } finally {
       setIsLoadingContent(false);
     }
@@ -233,49 +94,104 @@ export function WorkspaceLayout({
     fetchContent();
   }, [fetchContent]);
 
-  const previewHtml = useMemo(() => {
-    if (isLoadingContent) return PLACEHOLDER_HTML;
-    if (!contentRaw) return PLACEHOLDER_HTML;
+  const bodyHtml = useMemo(() => {
+    if (!contentRaw) return "";
+    // Split by double newlines to form paragraphs
+    return contentRaw
+      .split(/\n{2,}/)
+      .map((block) => {
+        const t = block.trim();
+        if (!t) return "";
+        if (t.startsWith("### ")) return `<h3>${t.slice(4)}</h3>`;
+        if (t.startsWith("## ")) return `<h2>${t.slice(3)}</h2>`;
+        if (t.startsWith("# ")) return `<h1>${t.slice(2)}</h1>`;
+        if (t.startsWith("> ")) return `<blockquote><p>${t.slice(2)}</p></blockquote>`;
+        // Preserve line breaks within a block
+        const lines = t.split("\n").map((l) => l.trim()).filter(Boolean);
+        return lines.map((l) => `<p>${l}</p>`).join("\n");
+      })
+      .filter(Boolean)
+      .join("\n");
+  }, [contentRaw]);
 
-    const bodyHtml = buildStyledHtml(contentRaw);
+  const previewHtml = useMemo(() => {
+    if (isLoadingContent) {
+      return `<!DOCTYPE html><html><head><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;color:#9ca3af;margin:0}</style></head><body><p>Loading...</p></body></html>`;
+    }
+    if (!contentRaw) {
+      return `<!DOCTYPE html><html><head><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;color:#9ca3af;margin:0}</style></head><body><div style="text-align:center"><p style="font-size:36px;margin:0">📄</p><p>Upload content in the Content tab</p></div></body></html>`;
+    }
+
+    // Clean CSS for browser preview:
+    // 1. Remove @page rules (handled by page container div)
+    // 2. Convert CMYK colors to RGB equivalents
+    // 3. Keep CSS variables (tokens should be loaded with the template)
+    const cleanCss = currentCss
+      .replace(/@page\s*[^{]*\{[^}]*\}/g, "")
+      .replace(/@page\s*:[^{]*\{[^}]*\}/g, "")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*100%\)/g, "#000000")
+      .replace(/cmyk\(60%,\s*40%,\s*40%,\s*100%\)/g, "#0a0a0a")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*80%\)/g, "#333333")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*50%\)/g, "#808080")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*20%\)/g, "#cccccc")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*10%\)/g, "#e6e6e6")
+      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*0%\)/g, "#ffffff")
+      .replace(/cmyk\([^)]+\)/g, "#333333");
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-${SCREEN_STYLES}
-${currentCss}
+* { box-sizing: border-box; }
+html { background: #e5e7eb; }
+body { margin: 0; padding: 0; }
+.page {
+  width: ${pageWidth}mm;
+  min-height: ${pageHeight}mm;
+  background: white;
+  margin: 10px auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  overflow: hidden;
+  position: relative;
+}
+.page-content {
+  padding: 15mm;
+  column-count: 1;
+}
+${cleanCss}
 </style>
-<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"><\/script>
 </head>
 <body>
+<div class="page">
+<div class="page-content">
 ${bodyHtml}
+</div>
+</div>
 </body>
 </html>`;
-  }, [currentCss, contentRaw, isLoadingContent]);
+  }, [currentCss, bodyHtml, contentRaw, isLoadingContent, pageWidth, pageHeight]);
 
   function handleContentChange() {
     fetchContent();
   }
 
   function handleStyleChangeFromChat(css: string) {
-    setCurrentCss(css);
+    if (css) setCurrentCss(css);
   }
 
   function handleStyleApplied(_bookType: string, css: string) {
-    if (css) {
-      setCurrentCss(css);
-    }
+    if (css) setCurrentCss(css);
   }
 
-  function handlePageSettingsChange(pageRule: string) {
-    setCurrentCss((prev) => replacePageRule(prev, pageRule));
+  function handlePageSettingsChange(pageRule: string, width: number, height: number) {
+    setPageWidth(width);
+    setPageHeight(height);
   }
 
   function handleUndoRedoCss(css: string) {
-    setCurrentCss(css);
+    if (css) setCurrentCss(css);
   }
 
   return (
@@ -296,7 +212,7 @@ ${bodyHtml}
             />
           }
           layoutPanel={
-            <div className="flex flex-col gap-6 p-4">
+            <div className="flex flex-col gap-6 p-4 overflow-auto">
               <PageSettings onPageSettingsChange={handlePageSettingsChange} />
               <div className="border-t border-gray-200 pt-4">
                 <StylePicker

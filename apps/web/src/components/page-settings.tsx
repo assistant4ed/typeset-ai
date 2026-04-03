@@ -34,7 +34,7 @@ const MIN_DIMENSION_MM = 50;
 const MAX_DIMENSION_MM = 500;
 
 interface PageSettingsProps {
-  onPageSettingsChange: (pageRule: string) => void;
+  onPageSettingsChange: (pageRule: string, width: number, height: number) => void;
 }
 
 function buildPageRule(
@@ -69,7 +69,7 @@ export function PageSettings({ onPageSettingsChange }: PageSettingsProps) {
     const width = isCustom ? customWidth : size.width;
     const height = isCustom ? customHeight : size.height;
     const pageRule = buildPageRule(width, height, bleed.value);
-    onPageSettingsChange(pageRule);
+    onPageSettingsChange(pageRule, width, height);
   }
 
   function handleSizeChange(sizeId: string) {

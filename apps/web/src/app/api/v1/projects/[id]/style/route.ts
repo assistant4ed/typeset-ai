@@ -20,12 +20,31 @@ const VALID_BOOK_TYPES = new Set([
   "magazine",
 ]);
 
-const TEMPLATES_DIR = join(process.cwd(), "..", "..", "templates", "book-types");
+const TEMPLATES_BASE = join(process.cwd(), "..", "..", "templates");
+
+async function loadFileIfExists(path: string): Promise<string> {
+  try {
+    return await readFile(path, "utf-8");
+  } catch {
+    return "";
+  }
+}
 
 async function loadBookTypeCss(bookType: string): Promise<string | null> {
   try {
-    const filePath = join(TEMPLATES_DIR, `${bookType}.css`);
-    return await readFile(filePath, "utf-8");
+    const rawCss = await readFile(join(TEMPLATES_BASE, "book-types", `${bookType}.css`), "utf-8");
+
+    // Load token files that the CSS @imports reference
+    const [typography, spacing, colors, grid] = await Promise.all([
+      loadFileIfExists(join(TEMPLATES_BASE, "tokens", "typography.css")),
+      loadFileIfExists(join(TEMPLATES_BASE, "tokens", "spacing.css")),
+      loadFileIfExists(join(TEMPLATES_BASE, "tokens", "colors.css")),
+      loadFileIfExists(join(TEMPLATES_BASE, "tokens", "grid.css")),
+    ]);
+
+    // Strip @import lines and prepend the actual token CSS
+    const cssWithoutImports = rawCss.replace(/@import\s+["'][^"']+["']\s*;/g, "");
+    return `/* Design Tokens */\n${typography}\n${spacing}\n${colors}\n${grid}\n\n/* Template: ${bookType} */\n${cssWithoutImports}`;
   } catch {
     return null;
   }
