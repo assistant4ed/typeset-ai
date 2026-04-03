@@ -38,7 +38,8 @@ COPY apps/cli/package.json apps/cli/tsconfig.json ./apps/cli/
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
+# Copy source code (cache bust on every deploy)
+ARG CACHEBUST=1
 COPY packages/ ./packages/
 COPY apps/ ./apps/
 COPY templates/ ./templates/
