@@ -30,6 +30,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
       success,
       canUndo: session.undoStack.length > 0,
       canRedo: session.redoStack.length > 0,
+      currentCss: session.currentCss,
     },
     requestId: crypto.randomUUID(),
   });

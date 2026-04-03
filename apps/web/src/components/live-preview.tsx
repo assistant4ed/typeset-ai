@@ -1,54 +1,51 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { useState, useCallback } from "react";
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 1.5;
 const DEFAULT_SCALE = 0.5;
 const SCALE_STEP = 0.1;
 
-const PAGE_WIDTH_MM = 210;
-const PAGE_HEIGHT_MM = 297;
-
 interface LivePreviewProps {
-  projectId: string;
-  refreshKey?: number;
+  htmlContent: string;
+  scale?: number;
+  onScaleChange?: (scale: number) => void;
 }
 
-export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
+export function LivePreview({
+  htmlContent,
+  scale: controlledScale,
+  onScaleChange,
+}: LivePreviewProps) {
+  const [internalScale, setInternalScale] = useState(DEFAULT_SCALE);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [scale, setScale] = useState(DEFAULT_SCALE);
 
-  const previewUrl = `/api/v1/projects/${projectId}/preview?t=${refreshKey}`;
+  const scale = controlledScale ?? internalScale;
 
-  useEffect(() => {
-    setIsLoading(true);
-    setHasError(false);
-  }, [refreshKey]);
-
-  const handleLoad = useCallback(() => {
-    setIsLoading(false);
-    setHasError(false);
-  }, []);
-
-  const handleError = useCallback(() => {
-    setIsLoading(false);
-    setHasError(true);
-  }, []);
+  function updateScale(newScale: number) {
+    const clamped = parseFloat(
+      Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale)).toFixed(2),
+    );
+    setInternalScale(clamped);
+    onScaleChange?.(clamped);
+  }
 
   function zoomOut() {
-    setScale((s) => Math.max(MIN_SCALE, parseFloat((s - SCALE_STEP).toFixed(2))));
+    updateScale(scale - SCALE_STEP);
   }
 
   function zoomIn() {
-    setScale((s) => Math.min(MAX_SCALE, parseFloat((s + SCALE_STEP).toFixed(2))));
+    updateScale(scale + SCALE_STEP);
   }
 
   function resetZoom() {
-    setScale(DEFAULT_SCALE);
+    updateScale(DEFAULT_SCALE);
   }
+
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -62,9 +59,13 @@ export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
             className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Zoom out"
           >
-            −
+            -
           </button>
-          <span className="text-sm text-gray-600 w-12 text-center" aria-live="polite" aria-atomic="true">
+          <span
+            className="text-sm text-gray-600 w-12 text-center"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {Math.round(scale * 100)}%
           </span>
           <button
@@ -85,41 +86,31 @@ export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
       </div>
 
       {/* Preview area */}
-      <div className="flex-1 overflow-auto bg-gray-100 p-4"
+      <div
+        className="flex-1 overflow-auto bg-gray-100"
         style={{ height: "calc(100vh - 50px)" }}
       >
         {isLoading && (
-          <div className="flex items-center justify-center h-full">
-            <Spinner label="Loading preview..." />
+          <div className="flex items-center justify-center h-32">
+            <span className="text-sm text-gray-400">Rendering preview...</span>
           </div>
         )}
-        {hasError && !isLoading && (
-          <div className="flex items-center justify-center h-full text-red-500 text-sm">
-            Failed to load preview
-          </div>
-        )}
-        {/* Preview container — scale the wrapper, keep iframe at natural width */}
         <div
-          className="mx-auto"
           style={{
-            width: `${PAGE_WIDTH_MM}mm`,
             transform: `scale(${scale})`,
-            transformOrigin: "top left",
+            transformOrigin: "top center",
+            width: `${100 / scale}%`,
           }}
-          aria-hidden={isLoading || hasError}
         >
           <iframe
-            key={refreshKey}
-            src={previewUrl}
+            srcDoc={htmlContent}
             title="Page preview"
             className="border-0 w-full bg-transparent"
             style={{
-              width: `${PAGE_WIDTH_MM}mm`,
               minHeight: "200vh",
               display: "block",
             }}
             onLoad={handleLoad}
-            onError={handleError}
             sandbox="allow-same-origin allow-scripts"
           />
         </div>

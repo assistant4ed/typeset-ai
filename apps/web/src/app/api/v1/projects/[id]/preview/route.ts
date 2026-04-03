@@ -40,11 +40,8 @@ const DEFAULT_CSS = `
 }
 body {
   font-family: Georgia, serif;
-  font-size: 12pt;
+  font-size: 11pt;
   line-height: 1.6;
-  max-width: 210mm;
-  margin: 20mm auto;
-  padding: 0 15mm;
   color: #1a1a1a;
 }
 h1 {
@@ -235,10 +232,17 @@ export async function GET(_request: Request, { params }: RouteParams) {
     margin: 0;
     padding: 20px 0;
   }
+  .pagedjs_pages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
   .pagedjs_page {
     background: white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    margin: 0 auto 20px auto;
+    flex-shrink: 0;
   }
 }
 ${finalCss}

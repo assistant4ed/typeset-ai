@@ -16,10 +16,16 @@ interface ChatMessage {
 interface ChatPanelProps {
   projectId: string;
   initialCss: string;
-  onStyleChange?: () => void;
+  onStyleChange?: (css: string) => void;
+  onUndoRedoCss?: (css: string) => void;
 }
 
-export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }: ChatPanelProps) {
+export function ChatPanel({
+  projectId,
+  initialCss: _initialCss,
+  onStyleChange,
+  onUndoRedoCss,
+}: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -34,7 +40,6 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load existing chat history on mount
   useEffect(() => {
     async function loadHistory() {
       try {
@@ -43,15 +48,21 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
         const { data } = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setMessages(
-            data.map((m: { id: string; role: "user" | "assistant"; content: string }) => ({
-              id: m.id,
-              role: m.role,
-              content: m.content,
-            }))
+            data.map(
+              (m: {
+                id: string;
+                role: "user" | "assistant";
+                content: string;
+              }) => ({
+                id: m.id,
+                role: m.role,
+                content: m.content,
+              }),
+            ),
           );
         }
       } catch {
-        // Silently fail — chat history is non-critical
+        // Silently fail -- chat history is non-critical
       }
     }
     loadHistory();
@@ -92,7 +103,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
           {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: json.error?.message ?? "Sorry, something went wrong. Please try again.",
+            content:
+              json.error?.message ??
+              "Sorry, something went wrong. Please try again.",
           },
         ]);
         return;
@@ -109,8 +122,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
       setMessages((prev) => [...prev, assistantMsg]);
       setCanUndo(json.data.canUndo ?? false);
       setCanRedo(false);
-      if (json.data.isApplied) {
-        onStyleChange?.();
+
+      if (json.data.isApplied && json.data.css) {
+        onStyleChange?.(json.data.css);
       }
     } catch {
       setMessages((prev) => [
@@ -118,7 +132,8 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Network error. Please check your connection and try again.",
+          content:
+            "Network error. Please check your connection and try again.",
         },
       ]);
     } finally {
@@ -135,7 +150,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
     if (res.ok) {
       setCanUndo(json.data.canUndo ?? false);
       setCanRedo(true);
-      onStyleChange?.();
+      if (json.data.currentCss) {
+        onUndoRedoCss?.(json.data.currentCss);
+      }
     }
   }
 
@@ -147,7 +164,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
     if (res.ok) {
       setCanUndo(true);
       setCanRedo(json.data.canRedo ?? false);
-      onStyleChange?.();
+      if (json.data.currentCss) {
+        onUndoRedoCss?.(json.data.currentCss);
+      }
     }
   }
 
@@ -170,8 +189,19 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
           aria-label="Undo last CSS change"
           title="Undo"
         >
-          <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
+            />
           </svg>
           Undo
         </Button>
@@ -183,8 +213,19 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
           aria-label="Redo last CSS change"
           title="Redo"
         >
-          <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" />
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3"
+            />
           </svg>
           Redo
         </Button>
@@ -203,7 +244,8 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
                 Describe the layout changes you want
               </p>
               <p className="mt-1 text-xs text-gray-400">
-                e.g. "Increase the body font size to 12pt" or "Add a decorative drop cap to chapter openings"
+                e.g. &quot;Increase the body font size to 12pt&quot; or
+                &quot;Add a decorative drop cap to chapter openings&quot;
               </p>
             </div>
           </div>
@@ -225,7 +267,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
                   : "bg-gray-100 text-gray-900",
               ].join(" ")}
             >
-              <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {msg.content}
+              </p>
               {msg.diff?.patch && msg.isApplied && (
                 <div className="mt-3">
                   <p className="mb-1 text-xs font-medium text-gray-500">
@@ -252,17 +296,41 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
       {/* Reference image preview */}
       {referenceFile && (
         <div className="flex shrink-0 items-center gap-2 border-t border-gray-100 bg-gray-50 px-4 py-2">
-          <svg aria-hidden="true" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+            />
           </svg>
-          <span className="text-xs text-gray-600 flex-1 truncate">{referenceFile.name}</span>
+          <span className="text-xs text-gray-600 flex-1 truncate">
+            {referenceFile.name}
+          </span>
           <button
             onClick={() => setReferenceFile(null)}
             aria-label={`Remove reference image ${referenceFile.name}`}
             className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
           >
-            <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              aria-hidden="true"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -277,8 +345,19 @@ export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }:
             title="Attach reference image"
             className="shrink-0 rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
-            <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
             </svg>
           </button>
           <input
