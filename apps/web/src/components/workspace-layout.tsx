@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState } from "react";
+
 import { LivePreview } from "@/components/live-preview";
 import { WorkspaceTabs } from "@/components/workspace-tabs";
 import { ContentPanel } from "@/components/content-panel";
@@ -23,43 +24,9 @@ interface WorkspaceLayoutProps {
   activityPanel: React.ReactNode;
 }
 
-const DEFAULT_CSS = `body {
-  font-family: "Noto Serif", Georgia, serif;
-  font-size: 11pt;
-  line-height: 1.7;
-  color: #1a1a1a;
-  padding: 15mm;
-}
-h1 {
-  font-size: 22pt;
-  text-align: center;
-  margin: 30mm 0 15mm 0;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h2 {
-  font-size: 16pt;
-  margin: 12mm 0 6mm 0;
-  font-weight: 600;
-}
-h3 {
-  font-size: 13pt;
-  margin: 8mm 0 4mm 0;
-}
-p {
-  text-indent: 1.5em;
-  margin: 0 0 0.3em 0;
-}
-p:first-of-type {
-  text-indent: 0;
-}
-blockquote {
-  margin: 6mm 10mm;
-  font-style: italic;
-  color: #555;
-  border-left: 2pt solid #ccc;
-  padding-left: 4mm;
-}`;
+const DEFAULT_PAGE_WIDTH = 210;
+const DEFAULT_PAGE_HEIGHT = 297;
+const DEFAULT_BLEED = 0;
 
 export function WorkspaceLayout({
   projectId,
@@ -68,137 +35,66 @@ export function WorkspaceLayout({
   sharedReferences,
   activityPanel,
 }: WorkspaceLayoutProps) {
-  const [currentCss, setCurrentCss] = useState(initialCss || DEFAULT_CSS);
-  const [contentRaw, setContentRaw] = useState<string | null>(null);
-  const [isLoadingContent, setIsLoadingContent] = useState(true);
-  const [pageWidth, setPageWidth] = useState(210);
-  const [pageHeight, setPageHeight] = useState(297);
+  const [currentCss, setCurrentCss] = useState(initialCss || "");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [pageWidth, setPageWidth] = useState(DEFAULT_PAGE_WIDTH);
+  const [pageHeight, setPageHeight] = useState(DEFAULT_PAGE_HEIGHT);
+  const [bleed, setBleed] = useState(DEFAULT_BLEED);
 
-  const fetchContent = useCallback(async () => {
-    setIsLoadingContent(true);
-    try {
-      const res = await fetch(`/api/v1/projects/${projectId}/content`);
-      const json = await res.json();
-      if (res.ok && json.data) {
-        const raw = json.data.content_tree?.raw ?? null;
-        setContentRaw(typeof raw === "string" ? raw : null);
-      }
-    } catch {
-      // Non-critical
-    } finally {
-      setIsLoadingContent(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
-
-  const bodyHtml = useMemo(() => {
-    if (!contentRaw) return "";
-    // Split by double newlines to form paragraphs
-    return contentRaw
-      .split(/\n{2,}/)
-      .map((block) => {
-        const t = block.trim();
-        if (!t) return "";
-        if (t.startsWith("### ")) return `<h3>${t.slice(4)}</h3>`;
-        if (t.startsWith("## ")) return `<h2>${t.slice(3)}</h2>`;
-        if (t.startsWith("# ")) return `<h1>${t.slice(2)}</h1>`;
-        if (t.startsWith("> ")) return `<blockquote><p>${t.slice(2)}</p></blockquote>`;
-        // Preserve line breaks within a block
-        const lines = t.split("\n").map((l) => l.trim()).filter(Boolean);
-        return lines.map((l) => `<p>${l}</p>`).join("\n");
-      })
-      .filter(Boolean)
-      .join("\n");
-  }, [contentRaw]);
-
-  const previewHtml = useMemo(() => {
-    if (isLoadingContent) {
-      return `<!DOCTYPE html><html><head><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;color:#9ca3af;margin:0}</style></head><body><p>Loading...</p></body></html>`;
-    }
-    if (!contentRaw) {
-      return `<!DOCTYPE html><html><head><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;color:#9ca3af;margin:0}</style></head><body><div style="text-align:center"><p style="font-size:36px;margin:0">📄</p><p>Upload content in the Content tab</p></div></body></html>`;
-    }
-
-    // Clean CSS for browser preview:
-    // 1. Remove @page rules (handled by page container div)
-    // 2. Convert CMYK colors to RGB equivalents
-    // 3. Keep CSS variables (tokens should be loaded with the template)
-    const cleanCss = currentCss
-      .replace(/@page\s*[^{]*\{[^}]*\}/g, "")
-      .replace(/@page\s*:[^{]*\{[^}]*\}/g, "")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*100%\)/g, "#000000")
-      .replace(/cmyk\(60%,\s*40%,\s*40%,\s*100%\)/g, "#0a0a0a")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*80%\)/g, "#333333")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*50%\)/g, "#808080")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*20%\)/g, "#cccccc")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*10%\)/g, "#e6e6e6")
-      .replace(/cmyk\(0%,\s*0%,\s*0%,\s*0%\)/g, "#ffffff")
-      .replace(/cmyk\([^)]+\)/g, "#333333");
-
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-* { box-sizing: border-box; }
-html { background: #e5e7eb; }
-body { margin: 0; padding: 0; }
-.page {
-  width: ${pageWidth}mm;
-  min-height: ${pageHeight}mm;
-  background: white;
-  margin: 10px auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
-  overflow: hidden;
-  position: relative;
-}
-.page-content {
-  padding: 15mm;
-  column-count: 1;
-}
-${cleanCss}
-</style>
-</head>
-<body>
-<div class="page">
-<div class="page-content">
-${bodyHtml}
-</div>
-</div>
-</body>
-</html>`;
-  }, [currentCss, bodyHtml, contentRaw, isLoadingContent, pageWidth, pageHeight]);
-
-  function handleContentChange() {
-    fetchContent();
+  function triggerRefresh() {
+    setRefreshTrigger((t) => t + 1);
   }
 
   function handleStyleChangeFromChat(css: string) {
-    if (css) setCurrentCss(css);
+    if (css) {
+      setCurrentCss(css);
+      triggerRefresh();
+    }
   }
 
   function handleStyleApplied(_bookType: string, css: string) {
-    if (css) setCurrentCss(css);
+    if (css) {
+      setCurrentCss(css);
+      triggerRefresh();
+    }
   }
 
-  function handlePageSettingsChange(pageRule: string, width: number, height: number) {
+  function handlePageSettingsChange(
+    _pageRule: string,
+    width: number,
+    height: number,
+  ) {
     setPageWidth(width);
     setPageHeight(height);
+    triggerRefresh();
+  }
+
+  function handleContentChange() {
+    triggerRefresh();
   }
 
   function handleUndoRedoCss(css: string) {
-    if (css) setCurrentCss(css);
+    if (css) {
+      setCurrentCss(css);
+      triggerRefresh();
+    }
   }
+
+  // Suppress unused variable warning for bleed setter until UI integrates it
+  void setBleed;
 
   return (
     <div className="flex flex-1 overflow-hidden">
       {/* Left: Live preview */}
       <div className="hidden w-[55%] shrink-0 border-r border-gray-200 lg:flex lg:flex-col">
-        <LivePreview htmlContent={previewHtml} />
+        <LivePreview
+          projectId={projectId}
+          currentCss={currentCss}
+          pageWidth={pageWidth}
+          pageHeight={pageHeight}
+          bleed={bleed}
+          refreshTrigger={refreshTrigger}
+        />
       </div>
 
       {/* Right: Tabbed panel */}
