@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { requireSession, handleAuthError } from "@/lib/rbac";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface RouteParams {
   params: { id: string };
 }
@@ -132,7 +135,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const rawContent = contentTree?.raw;
   if (!rawContent) {
     return new NextResponse(PLACEHOLDER_HTML, {
-      headers: { "Content-Type": HTML_CONTENT_TYPE },
+      headers: {
+        "Content-Type": HTML_CONTENT_TYPE,
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
     });
   }
 
@@ -154,6 +160,10 @@ ${paragraphs}
 </html>`;
 
   return new NextResponse(html, {
-    headers: { "Content-Type": HTML_CONTENT_TYPE },
+    headers: {
+      "Content-Type": HTML_CONTENT_TYPE,
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "Pragma": "no-cache",
+    },
   });
 }
