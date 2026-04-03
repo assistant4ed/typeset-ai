@@ -51,13 +51,15 @@ async function getOrCreateSession(
   const styles = stylesRaw as any;
   const content = contentRaw as any;
   const currentCss = styles?.css_content ?? "";
-  const contentTree = (content?.content_tree ?? {
-    metadata: { title: "Untitled", author: "", source: "manual", pageCount: 0 },
-    frontMatter: [],
-    chapters: [],
-    backMatter: [],
-    assets: [],
-  }) as ContentTree;
+  const rawTree = content?.content_tree ?? {};
+  const contentTree = {
+    metadata: rawTree.metadata ?? { title: "Untitled", author: "", source: "manual", pageCount: 0 },
+    frontMatter: rawTree.frontMatter ?? [],
+    chapters: rawTree.chapters ?? [],
+    backMatter: rawTree.backMatter ?? [],
+    assets: rawTree.assets ?? [],
+    raw: rawTree.raw ?? "",
+  } as ContentTree;
 
   const session = createChatSession(contentTree, currentCss);
   chatSessionStore.set(projectId, session);

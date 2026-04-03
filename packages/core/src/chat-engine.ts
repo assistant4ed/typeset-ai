@@ -25,13 +25,26 @@ const EXTENSION_TO_MEDIA_TYPE: Record<string, ImageMediaType> = {
 };
 
 function summarizeContent(content: ContentTree): string {
-  const chapterTitles = content.chapters.map((c) => `  - ${c.title}`).join("\n");
+  const chapters = content.chapters ?? [];
+  const assets = content.assets ?? [];
+  const metadata = content.metadata ?? { title: "Untitled", author: "" };
+  const raw = (content as Record<string, unknown>).raw;
+
+  if (chapters.length === 0 && typeof raw === "string" && raw.length > 0) {
+    const wordCount = raw.split(/\s+/).length;
+    return [
+      `Title: ${metadata.title || "Untitled"}`,
+      `Content: ${wordCount} words (plain text)`,
+    ].join("\n");
+  }
+
+  const chapterTitles = chapters.map((c) => `  - ${c.title}`).join("\n");
   return [
-    `Title: ${content.metadata.title}`,
-    `Author: ${content.metadata.author}`,
-    `Chapters (${content.chapters.length}):`,
-    chapterTitles,
-    `Assets: ${content.assets.length}`,
+    `Title: ${metadata.title || "Untitled"}`,
+    `Author: ${metadata.author || "Unknown"}`,
+    `Chapters (${chapters.length}):`,
+    chapterTitles || "  (none)",
+    `Assets: ${assets.length}`,
   ].join("\n");
 }
 
