@@ -6,6 +6,7 @@ import { PagePreview } from "@/components/page-preview";
 import { ChatPanel } from "@/components/chat-panel";
 import { ContentPanel } from "@/components/content-panel";
 import { ExportPanel } from "@/components/export-panel";
+import { StylePicker } from "@/components/style-picker";
 import { StatusBadge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
@@ -34,7 +35,7 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
 
   const db = createServerClient();
 
-  const [projectRes, stylesRes] = await Promise.all([
+  const [projectRes, stylesRes, referencesRes] = await Promise.all([
     db.from("projects").select("*").eq("id", params.id).single(),
     db
       .from("project_styles")
@@ -43,12 +44,20 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
       .order("version", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    db
+      .from("templates")
+      .select("id, name, thumbnail_url")
+      .eq("is_system", true)
+      .not("thumbnail_url", "is", null)
+      .order("created_at", { ascending: false }),
   ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const project = projectRes.data as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const styles = stylesRes.data as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sharedReferences = (referencesRes.data ?? []) as any[];
 
   if (!project) notFound();
 
@@ -100,7 +109,11 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
             }
             layoutPanel={
               <div className="p-4">
-                <LayoutPanel css={currentCss} projectId={project.id} />
+                <StylePicker
+                  projectId={project.id}
+                  initialBookType={project.book_type ?? undefined}
+                  sharedReferences={sharedReferences}
+                />
               </div>
             }
             chatPanel={
@@ -121,23 +134,6 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
   );
 }
 
-
-function LayoutPanel({ css, projectId: _projectId }: { css: string; projectId: string }) {
-  return (
-    <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700">Current CSS Layout</h2>
-      {css ? (
-        <pre className="overflow-auto rounded-lg border border-gray-200 bg-gray-900 p-4 text-xs text-gray-100 font-mono max-h-96">
-          <code>{css}</code>
-        </pre>
-      ) : (
-        <p className="text-sm text-gray-500">
-          No layout CSS yet. Use the AI Chat tab to generate a layout.
-        </p>
-      )}
-    </div>
-  );
-}
 
 async function ActivityPanel({ projectId }: { projectId: string }) {
   const { getProjectActivity } = await import("@/lib/activity");
