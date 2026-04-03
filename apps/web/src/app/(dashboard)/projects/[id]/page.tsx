@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/rbac";
 import { WorkspaceTabs } from "@/components/workspace-tabs";
 import { PagePreview } from "@/components/page-preview";
 import { ChatPanel } from "@/components/chat-panel";
+import { ContentPanel } from "@/components/content-panel";
 import { ExportPanel } from "@/components/export-panel";
 import { StatusBadge } from "@/components/ui/badge";
 import type { Metadata } from "next";
@@ -33,18 +34,11 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
 
   const db = createServerClient();
 
-  const [projectRes, stylesRes, contentRes] = await Promise.all([
+  const [projectRes, stylesRes] = await Promise.all([
     db.from("projects").select("*").eq("id", params.id).single(),
     db
       .from("project_styles")
       .select("css_content, version")
-      .eq("project_id", params.id)
-      .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    db
-      .from("project_content")
-      .select("content_tree, version")
       .eq("project_id", params.id)
       .order("version", { ascending: false })
       .limit(1)
@@ -55,8 +49,6 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
   const project = projectRes.data as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const styles = stylesRes.data as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const content = contentRes.data as any;
 
   if (!project) notFound();
 
@@ -104,9 +96,7 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
           <WorkspaceTabs
             projectId={project.id}
             contentPanel={
-              <div className="p-4">
-                <ContentPanel content={content} />
-              </div>
+              <ContentPanel projectId={project.id} />
             }
             layoutPanel={
               <div className="p-4">
@@ -131,42 +121,6 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
   );
 }
 
-function ContentPanel({
-  content,
-}: {
-  content: { content_tree: Record<string, unknown>; version: number } | null;
-}) {
-  if (!content) {
-    return (
-      <p className="text-sm text-gray-500">
-        No content imported yet. Import a Markdown file or Google Doc to get started.
-      </p>
-    );
-  }
-
-  const tree = content.content_tree as { metadata?: { title?: string; author?: string }; chapters?: unknown[] };
-  return (
-    <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700">Content (v{content.version})</h2>
-      {tree.metadata && (
-        <dl className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
-          <div className="flex gap-2">
-            <dt className="font-medium text-gray-500 w-16 shrink-0">Title</dt>
-            <dd className="text-gray-900">{tree.metadata.title ?? "Untitled"}</dd>
-          </div>
-          <div className="flex gap-2 mt-1">
-            <dt className="font-medium text-gray-500 w-16 shrink-0">Author</dt>
-            <dd className="text-gray-900">{tree.metadata.author ?? "—"}</dd>
-          </div>
-          <div className="flex gap-2 mt-1">
-            <dt className="font-medium text-gray-500 w-16 shrink-0">Chapters</dt>
-            <dd className="text-gray-900">{(tree.chapters ?? []).length}</dd>
-          </div>
-        </dl>
-      )}
-    </div>
-  );
-}
 
 function LayoutPanel({ css, projectId: _projectId }: { css: string; projectId: string }) {
   return (
