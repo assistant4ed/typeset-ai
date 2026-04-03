@@ -1,12 +1,7 @@
 import { notFound } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/rbac";
-import { WorkspaceTabs } from "@/components/workspace-tabs";
-import { PagePreview } from "@/components/page-preview";
-import { ChatPanel } from "@/components/chat-panel";
-import { ContentPanel } from "@/components/content-panel";
-import { ExportPanel } from "@/components/export-panel";
-import { StylePicker } from "@/components/style-picker";
+import { WorkspaceLayout } from "@/components/workspace-layout";
 import { StatusBadge } from "@/components/ui/badge";
 import type { Metadata } from "next";
 
@@ -70,7 +65,6 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
   }
 
   const currentCss = styles?.css_content ?? "";
-  const pageCount = project.page_count ?? 1;
 
   return (
     <div className="flex h-[calc(100vh-0px)] flex-col">
@@ -89,47 +83,18 @@ export default async function ProjectWorkspacePage({ params }: PageProps) {
         </div>
       </header>
 
-      {/* Split pane */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Page preview */}
-        <div className="hidden w-[55%] shrink-0 border-r border-gray-200 lg:flex lg:flex-col">
-          <PagePreview
-            projectId={project.id}
-            pageCount={pageCount}
-            currentCss={currentCss}
-          />
-        </div>
-
-        {/* Right: Tabbed panel */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <WorkspaceTabs
-            projectId={project.id}
-            contentPanel={
-              <ContentPanel projectId={project.id} />
-            }
-            layoutPanel={
-              <div className="p-4">
-                <StylePicker
-                  projectId={project.id}
-                  initialBookType={project.book_type ?? undefined}
-                  sharedReferences={sharedReferences}
-                />
-              </div>
-            }
-            chatPanel={
-              <ChatPanel projectId={project.id} initialCss={currentCss} />
-            }
-            exportPanel={
-              <ExportPanel projectId={project.id} />
-            }
-            activityPanel={
-              <div className="p-4">
-                <ActivityPanel projectId={project.id} />
-              </div>
-            }
-          />
-        </div>
-      </div>
+      {/* Interactive split pane — client component manages refreshKey state */}
+      <WorkspaceLayout
+        projectId={project.id}
+        initialCss={currentCss}
+        initialBookType={project.book_type ?? undefined}
+        sharedReferences={sharedReferences}
+        activityPanel={
+          <div className="p-4">
+            <ActivityPanel projectId={project.id} />
+          </div>
+        }
+      />
     </div>
   );
 }

@@ -16,9 +16,10 @@ interface ChatMessage {
 interface ChatPanelProps {
   projectId: string;
   initialCss: string;
+  onStyleChange?: () => void;
 }
 
-export function ChatPanel({ projectId, initialCss: _initialCss }: ChatPanelProps) {
+export function ChatPanel({ projectId, initialCss: _initialCss, onStyleChange }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -108,6 +109,9 @@ export function ChatPanel({ projectId, initialCss: _initialCss }: ChatPanelProps
       setMessages((prev) => [...prev, assistantMsg]);
       setCanUndo(json.data.canUndo ?? false);
       setCanRedo(false);
+      if (json.data.isApplied) {
+        onStyleChange?.();
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -131,6 +135,7 @@ export function ChatPanel({ projectId, initialCss: _initialCss }: ChatPanelProps
     if (res.ok) {
       setCanUndo(json.data.canUndo ?? false);
       setCanRedo(true);
+      onStyleChange?.();
     }
   }
 
@@ -142,6 +147,7 @@ export function ChatPanel({ projectId, initialCss: _initialCss }: ChatPanelProps
     if (res.ok) {
       setCanUndo(true);
       setCanRedo(json.data.canRedo ?? false);
+      onStyleChange?.();
     }
   }
 

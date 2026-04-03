@@ -22,6 +22,7 @@ interface ContentRecord {
 
 interface ContentPanelProps {
   projectId: string;
+  onContentChange?: () => void;
 }
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -68,7 +69,7 @@ function isValidGoogleDocsUrl(url: string): boolean {
   return url.startsWith("https://docs.google.com/");
 }
 
-export function ContentPanel({ projectId }: ContentPanelProps) {
+export function ContentPanel({ projectId, onContentChange }: ContentPanelProps) {
   const [content, setContent] = useState<ContentRecord | null>(null);
   const [editorText, setEditorText] = useState("");
   const [isLoadingContent, setIsLoadingContent] = useState(true);
@@ -143,6 +144,7 @@ export function ContentPanel({ projectId }: ContentPanelProps) {
       const record = json.data as ContentRecord;
       setContent(record);
       setEditorText(record.content_tree?.raw ?? "");
+      onContentChange?.();
     } catch {
       setError("Network error during upload. Please check your connection.");
     } finally {
@@ -184,6 +186,7 @@ export function ContentPanel({ projectId }: ContentPanelProps) {
       setContent(record);
       setEditorText(record.content_tree?.raw ?? "");
       setGoogleDocsUrl("");
+      onContentChange?.();
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
@@ -214,6 +217,7 @@ export function ContentPanel({ projectId }: ContentPanelProps) {
       setContent(json.data as ContentRecord);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
+      onContentChange?.();
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
