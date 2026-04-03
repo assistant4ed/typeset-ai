@@ -180,6 +180,18 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   try {
     const chatSession = await getOrCreateSession(params.id, db);
+
+    // Ensure history is always an array (prevents .map crash on corrupted sessions)
+    if (!Array.isArray(chatSession.history)) {
+      chatSession.history = [];
+    }
+    if (!Array.isArray(chatSession.undoStack)) {
+      chatSession.undoStack = [];
+    }
+    if (!Array.isArray(chatSession.redoStack)) {
+      chatSession.redoStack = [];
+    }
+
     const response = await sendChatMessage(chatSession, message.trim(), imageTmpPath);
 
     // Persist updated CSS to project_styles
@@ -214,6 +226,19 @@ export async function POST(request: Request, { params }: RouteParams) {
       },
       requestId: crypto.randomUUID(),
     });
+  } catch (err) {
+    console.error("Chat error:", err);
+    // Clear corrupted session so next request gets a fresh one
+    chatSessionStore.delete(params.id);
+    return NextResponse.json(
+      {
+        error: {
+          code: "CHAT_ERROR",
+          message: err instanceof Error ? err.message : "Failed to process chat message. Please try again.",
+        },
+      },
+      { status: 500 },
+    );
   } finally {
     // Always clean up the temp image file
     if (imageTmpPath) {

@@ -170,7 +170,32 @@ export async function POST(request: Request, { params }: RouteParams) {
         { status: 422 }
       );
     }
-    contentTree = { raw: "", source: "google-docs", fileName: url };
+    // Extract document ID and fetch as plain text via Google's export URL
+    const docIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (!docIdMatch) {
+      return NextResponse.json(
+        { error: { code: "INVALID_URL", message: "Could not extract document ID from URL. Make sure the doc is shared publicly." } },
+        { status: 422 }
+      );
+    }
+    const docId = docIdMatch[1];
+    const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
+    try {
+      const res = await fetch(exportUrl);
+      if (!res.ok) {
+        return NextResponse.json(
+          { error: { code: "FETCH_FAILED", message: "Could not fetch Google Doc. Make sure the document is shared with 'Anyone with the link'." } },
+          { status: 422 }
+        );
+      }
+      const docText = await res.text();
+      contentTree = { raw: docText, source: "google-docs", fileName: url };
+    } catch {
+      return NextResponse.json(
+        { error: { code: "NETWORK_ERROR", message: "Failed to connect to Google Docs. Check the URL and try again." } },
+        { status: 502 }
+      );
+    }
   } else {
     return NextResponse.json(
       { error: { code: "BAD_REQUEST", message: "Provide a file, text, or Google Docs URL" } },
