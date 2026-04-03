@@ -68,29 +68,44 @@ export async function POST(request: Request, { params }: RouteParams) {
       margin: { top: 25, bottom: 30, left: 20, right: 15 },
     });
 
-    const svg = renderToSvg(typstCode);
     const html = renderToHtml(typstCode);
 
-    // Split SVG into individual pages
-    const pageRegex = /<g[^>]*class="typst-page"[^>]*>[\s\S]*?<\/g>/g;
-    const svgPages = svg.match(pageRegex) ?? [];
-
-    const svgHeader =
-      svg.match(/<svg[^>]*>/)?.[0] ?? '<svg xmlns="http://www.w3.org/2000/svg">';
-
-    const pages =
-      svgPages.length > 0
-        ? svgPages.map((pageContent) => `${svgHeader}${pageContent}</svg>`)
-        : [svg];
+    // Wrap HTML with web fonts for CJK/multilingual support
+    const styledHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;600;700&family=Noto+Serif:wght@400;600;700&family=Noto+Sans:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html { background: #e5e7eb; }
+  body {
+    margin: 0; padding: 0;
+    font-family: "Noto Serif TC", "Noto Serif", "Noto Naskh Arabic", serif;
+  }
+  .typst-page, article, section {
+    width: ${pageWidth}mm;
+    min-height: ${pageHeight}mm;
+    background: white;
+    margin: 10px auto;
+    padding: ${25}mm ${15}mm ${30}mm ${20}mm;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
 
     return NextResponse.json({
       data: {
-        pages,
-        pageCount: pages.length,
-        html,
+        html: styledHtml,
         typstCode,
         pageWidth,
         pageHeight,
+        mode: "html",
       },
       requestId: crypto.randomUUID(),
     });

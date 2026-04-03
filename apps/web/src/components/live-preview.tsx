@@ -27,7 +27,7 @@ export function LivePreview({
   bleed,
   refreshTrigger,
 }: LivePreviewProps) {
-  const [pages, setPages] = useState<string[]>([]);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(DEFAULT_SCALE);
@@ -60,9 +60,9 @@ export function LivePreview({
       }
 
       const json = (await res.json()) as {
-        data?: { pages?: string[] };
+        data?: { html?: string; pages?: string[] };
       };
-      setPages(json.data?.pages ?? []);
+      setPreviewHtml(json.data?.html ?? null);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Preview failed",
@@ -88,11 +88,9 @@ export function LivePreview({
     setScale(DEFAULT_SCALE);
   }
 
-  const aspectRatio = pageWidth / pageHeight;
-  const pageWidthPx = pageWidth * MM_TO_PX_AT_96DPI * (scale / 100);
-  const isFirstLoad = isRendering && pages.length === 0;
-  const hasPages = pages.length > 0;
-  const isEmpty = !error && !hasPages && !isRendering;
+  const isFirstLoad = isRendering && !previewHtml;
+  const hasContent = !!previewHtml;
+  const isEmpty = !error && !hasContent && !isRendering;
 
   return (
     <div className="flex flex-col h-full">
@@ -100,12 +98,12 @@ export function LivePreview({
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50 shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-700">Preview</span>
-          {hasPages && (
+          {hasContent && (
             <span
               className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full"
               aria-live="polite"
             >
-              {pages.length} page{pages.length !== 1 ? "s" : ""}
+              Preview ready
             </span>
           )}
         </div>
@@ -190,7 +188,7 @@ export function LivePreview({
           </div>
         )}
 
-        {hasPages && (
+        {hasContent && (
           <div className="relative">
             {isRendering && (
               <div
@@ -200,23 +198,20 @@ export function LivePreview({
                 Updating...
               </div>
             )}
-            <div className="flex flex-wrap justify-center gap-4">
-              {pages.map((svgContent, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white shadow-lg flex-shrink-0 overflow-hidden"
-                  style={{
-                    width: `${pageWidthPx}px`,
-                    aspectRatio: `${aspectRatio}`,
-                  }}
-                >
-                  <div
-                    className="w-full h-full"
-                    dangerouslySetInnerHTML={{ __html: svgContent }}
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                </div>
-              ))}
+            <div
+              style={{
+                transform: `scale(${scale / 100})`,
+                transformOrigin: "top center",
+                width: `${100 / (scale / 100)}%`,
+              }}
+            >
+              <iframe
+                srcDoc={previewHtml ?? ""}
+                title="Typeset preview"
+                className="w-full border-0 bg-transparent"
+                style={{ minHeight: "200vh", height: "3000px" }}
+                sandbox="allow-same-origin allow-scripts"
+              />
             </div>
           </div>
         )}
