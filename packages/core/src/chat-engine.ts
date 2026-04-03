@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { createPatch } from "diff";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -11,18 +11,8 @@ import type {
   CssDiff,
 } from "./types.js";
 
-const MODEL_ID = "claude-sonnet-4-20250514";
-const MAX_TOKENS = 4096;
-
-type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-
-const EXTENSION_TO_MEDIA_TYPE: Record<string, ImageMediaType> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  gif: "image/gif",
-  webp: "image/webp",
-};
+const MODEL_ID = "gemini-2.5-pro-preview-05-06";
+const MAX_TOKENS = 8192;
 
 function summarizeContent(content: ContentTree): string {
   const chapters = content.chapters ?? [];
@@ -64,15 +54,6 @@ function extractMessageFromResponse(response: string): string {
 function generateCssDiff(before: string, after: string): CssDiff {
   const patch = createPatch("layout.css", before, after, "previous", "updated");
   return { before, after, patch };
-}
-
-function getMediaType(imagePath: string): ImageMediaType {
-  const ext = imagePath.split(".").pop()?.toLowerCase() ?? "";
-  const mediaType = EXTENSION_TO_MEDIA_TYPE[ext];
-  if (!mediaType) {
-    throw new Error(`Unsupported image format: .${ext}`);
-  }
-  return mediaType;
 }
 
 function buildSystemPrompt(content: ContentTree, currentCss: string): string {
@@ -117,9 +98,12 @@ export async function sendChatMessage(
   userMessage: string,
   referenceImagePath?: string,
 ): Promise<ChatResponse> {
-  const client = new Anthropic({
-    apiKey: process.env["ANTHROPIC_API_KEY"] ?? "test-key",
-  });
+  const apiKey = process.env["GEMINI_API_KEY"] ?? process.env["GOOGLE_AI_API_KEY"] ?? "";
+  if (!apiKey) {
+    throw new Error("Missing GEMINI_API_KEY or GOOGLE_AI_API_KEY environment variable");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   const now = new Date().toISOString();
 
@@ -134,48 +118,43 @@ export async function sendChatMessage(
 
   const systemPrompt = buildSystemPrompt(session.contentTree, session.currentCss);
 
-  const conversationMessages: Anthropic.MessageParam[] = session.history.map(
-    (msg) => {
-      if (msg.role === "user" && msg.referenceImagePath) {
+  // Build conversation history for Gemini
+  const contents: Array<{ role: string; parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> }> = [];
+
+  for (const msg of session.history) {
+    const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+
+    if (msg.role === "user" && msg.referenceImagePath) {
+      try {
         const imageBuffer = readFileSync(msg.referenceImagePath);
         const base64Data = imageBuffer.toString("base64");
-        const mediaType = getMediaType(msg.referenceImagePath);
-
-        return {
-          role: "user" as const,
-          content: [
-            {
-              type: "image" as const,
-              source: {
-                type: "base64" as const,
-                media_type: mediaType,
-                data: base64Data,
-              },
-            },
-            {
-              type: "text" as const,
-              text: msg.content,
-            },
-          ],
+        const ext = msg.referenceImagePath.split(".").pop()?.toLowerCase() ?? "jpeg";
+        const mimeMap: Record<string, string> = {
+          jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+          gif: "image/gif", webp: "image/webp",
         };
+        parts.push({
+          inlineData: { mimeType: mimeMap[ext] ?? "image/jpeg", data: base64Data },
+        });
+      } catch {
+        // Image file may no longer exist, skip it
       }
+    }
 
-      return {
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      };
-    },
-  );
+    parts.push({ text: msg.content });
+    contents.push({ role: msg.role === "assistant" ? "model" : "user", parts });
+  }
 
-  const response = await client.messages.create({
+  const response = await ai.models.generateContent({
     model: MODEL_ID,
-    max_tokens: MAX_TOKENS,
-    system: systemPrompt,
-    messages: conversationMessages,
+    config: {
+      maxOutputTokens: MAX_TOKENS,
+      systemInstruction: systemPrompt,
+    },
+    contents,
   });
 
-  const textBlock = response.content.find((block) => block.type === "text");
-  const rawText = textBlock && textBlock.type === "text" ? textBlock.text : "";
+  const rawText = response.text ?? "";
 
   const newCss = extractCssFromResponse(rawText);
   const message = extractMessageFromResponse(rawText);

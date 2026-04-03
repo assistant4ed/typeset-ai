@@ -1,12 +1,12 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { ContentTree, LayoutOptions } from "./types.js";
 
-const MODEL_ID = "claude-sonnet-4-20250514";
-const MAX_TOKENS = 4096;
+const MODEL_ID = "gemini-2.5-pro-preview-05-06";
+const MAX_TOKENS = 8192;
 
 function getTemplatesDir(): string {
   const currentDir = resolve(fileURLToPath(import.meta.url), "..");
@@ -23,36 +23,34 @@ function loadBaseTemplate(bookType: string): string {
 }
 
 function summarizeContent(content: ContentTree): string {
-  const chapterCount = content.chapters.length;
+  const chapters = content.chapters ?? [];
+  const raw = (content as unknown as Record<string, unknown>).raw;
+
+  if (chapters.length === 0 && typeof raw === "string") {
+    const wordCount = raw.split(/\s+/).length;
+    return `Content: ${wordCount} words (plain text)`;
+  }
+
   let paragraphCount = 0;
   let imageCount = 0;
   let tableCount = 0;
-  let listCount = 0;
 
-  for (const chapter of content.chapters) {
-    for (const section of chapter.sections) {
-      for (const block of section.blocks) {
+  for (const chapter of chapters) {
+    for (const section of chapter.sections ?? []) {
+      for (const block of section.blocks ?? []) {
         if (block.type === "paragraph") paragraphCount++;
         else if (block.type === "image") imageCount++;
         else if (block.type === "table") tableCount++;
-        else if (block.type === "list") listCount++;
       }
     }
   }
 
-  const frontMatterCount = content.frontMatter.length;
-  const backMatterCount = content.backMatter.length;
-  const assetCount = content.assets.length;
-
   return [
-    `Chapters: ${chapterCount}`,
+    `Chapters: ${chapters.length}`,
     `Paragraphs: ${paragraphCount}`,
     `Images: ${imageCount}`,
     `Tables: ${tableCount}`,
-    `Lists: ${listCount}`,
-    `Front matter blocks: ${frontMatterCount}`,
-    `Back matter blocks: ${backMatterCount}`,
-    `Assets: ${assetCount}`,
+    `Assets: ${(content.assets ?? []).length}`,
   ].join("\n");
 }
 
@@ -68,9 +66,12 @@ export async function generateLayout(
   content: ContentTree,
   options: LayoutOptions,
 ): Promise<string> {
-  const client = new Anthropic({
-    apiKey: process.env["ANTHROPIC_API_KEY"] ?? "test-key",
-  });
+  const apiKey = process.env["GEMINI_API_KEY"] ?? process.env["GOOGLE_AI_API_KEY"] ?? "";
+  if (!apiKey) {
+    throw new Error("Missing GEMINI_API_KEY or GOOGLE_AI_API_KEY environment variable");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const baseTemplate = loadBaseTemplate(options.bookType);
   const contentSummary = summarizeContent(content);
 
@@ -89,15 +90,14 @@ export async function generateLayout(
     `\nContent structure:\n${contentSummary}` +
     baseTemplateSection;
 
-  const response = await client.messages.create({
+  const response = await ai.models.generateContent({
     model: MODEL_ID,
-    max_tokens: MAX_TOKENS,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userPrompt }],
+    config: {
+      maxOutputTokens: MAX_TOKENS,
+      systemInstruction: systemPrompt,
+    },
+    contents: userPrompt,
   });
 
-  const textBlock = response.content.find((block) => block.type === "text");
-  const rawText = textBlock && textBlock.type === "text" ? textBlock.text : "";
-
-  return extractCssFromResponse(rawText);
+  return extractCssFromResponse(response.text ?? "");
 }

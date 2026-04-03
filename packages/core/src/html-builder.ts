@@ -48,19 +48,38 @@ ${sections}
 }
 
 export function buildHtml(content: ContentTree, css: string): string {
-  const chapters = content.chapters.map(renderChapter).join("\n");
+  const chapters = (content.chapters ?? []).map(renderChapter).join("\n");
+  const title = content.metadata?.title ?? "Untitled";
+
+  // If no chapters but raw content exists, render raw text as paragraphs
+  const raw = (content as unknown as Record<string, unknown>).raw;
+  let body = chapters;
+  if (!body && typeof raw === "string" && raw.length > 0) {
+    body = raw
+      .split("\n\n")
+      .map((p) => {
+        const trimmed = p.trim();
+        if (!trimmed) return "";
+        if (trimmed.startsWith("# ")) return `<h1>${trimmed.slice(2)}</h1>`;
+        if (trimmed.startsWith("## ")) return `<h2>${trimmed.slice(3)}</h2>`;
+        if (trimmed.startsWith("### ")) return `<h3>${trimmed.slice(4)}</h3>`;
+        if (trimmed.startsWith("> ")) return `<blockquote><p>${trimmed.slice(2)}</p></blockquote>`;
+        return `<p>${trimmed}</p>`;
+      })
+      .join("\n");
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${escapeHtml(content.metadata.title)}</title>
+<title>${escapeHtml(title)}</title>
 <style>${css}</style>
 <script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
 </head>
 <body>
-${chapters}
+${body}
 </body>
 </html>`;
 }
