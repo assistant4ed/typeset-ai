@@ -101,6 +101,8 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
 
+  packages/config: {}
+
   packages/core:
     dependencies:
       '@anthropic-ai/sdk':
@@ -155,6 +157,14 @@ importers:
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
+
+  packages/errors: {}
+
+  packages/providers:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: 0.39.0
+        version: 0.39.0
 
 packages:
 

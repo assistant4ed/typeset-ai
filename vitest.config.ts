@@ -23,6 +23,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@typeset-ai/core": resolve(__dirname, "packages/core/src"),
+      "@typeset-ai/providers": resolve(__dirname, "packages/providers/src"),
+      "@typeset-ai/errors": resolve(__dirname, "packages/errors/src"),
+      "@typeset-ai/config": resolve(__dirname, "packages/config/src"),
       "@anthropic-ai/sdk": resolve(
         __dirname,
         "node_modules/.pnpm/@anthropic-ai+sdk@0.39.0/node_modules/@anthropic-ai/sdk/index.mjs",
