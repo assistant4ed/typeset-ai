@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import type { ContentTree, LayoutOptions } from "./types.js";
 
-const MODEL_ID = "gemini-2.0-flash";
+const MODEL_ID = "gemini-3-pro-image-preview";
 const MAX_TOKENS = 8192;
 
 function getTemplatesDir(): string {
