@@ -46,7 +46,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           action={async () => {
             "use server";
             await signIn("google", {
-              redirectTo: searchParams.callbackUrl ?? "/dashboard",
+              redirectTo: searchParams.callbackUrl ?? "/projects",
             });
           }}
         >
