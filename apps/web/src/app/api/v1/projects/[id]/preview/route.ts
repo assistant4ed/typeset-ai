@@ -75,19 +75,81 @@ blockquote {
 }
 `;
 
-function buildParagraphs(raw: string): string {
-  return raw
-    .split("\n\n")
-    .map((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) return "";
-      if (trimmed.startsWith("### ")) return `<h3>${trimmed.slice(4)}</h3>`;
-      if (trimmed.startsWith("## ")) return `<h2>${trimmed.slice(3)}</h2>`;
-      if (trimmed.startsWith("# ")) return `<h1>${trimmed.slice(2)}</h1>`;
-      if (trimmed.startsWith("> ")) return `<blockquote><p>${trimmed.slice(2)}</p></blockquote>`;
-      return `<p>${trimmed}</p>`;
-    })
-    .join("\n");
+function buildStyledHtml(raw: string): string {
+  const lines = raw.split("\n");
+  const chapters: string[] = [];
+  let currentChapter = "";
+  let currentSection = "";
+  let chapterNum = 0;
+  let inChapter = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.startsWith("# ") || (!inChapter && trimmed.length > 0)) {
+      // Close previous section and chapter
+      if (currentSection) {
+        currentChapter += `${currentSection}</section>\n`;
+        currentSection = "";
+      }
+      if (inChapter) {
+        chapters.push(`${currentChapter}</section>\n`);
+        currentChapter = "";
+      }
+
+      chapterNum++;
+      const title = trimmed.startsWith("# ") ? trimmed.slice(2) : `Section ${chapterNum}`;
+      currentChapter = `<section class="chapter" data-chapter="${chapterNum}">\n<h1>${title}</h1>\n`;
+      inChapter = true;
+
+      if (!trimmed.startsWith("# ")) {
+        currentSection = `<section class="section">\n<p>${trimmed}</p>\n`;
+      }
+      continue;
+    }
+
+    if (trimmed.startsWith("## ")) {
+      if (currentSection) {
+        currentChapter += `${currentSection}</section>\n`;
+      }
+      currentSection = `<section class="section">\n<h2>${trimmed.slice(3)}</h2>\n`;
+      continue;
+    }
+
+    if (trimmed.startsWith("### ")) {
+      if (!currentSection) currentSection = `<section class="section">\n`;
+      currentSection += `<h3>${trimmed.slice(4)}</h3>\n`;
+      continue;
+    }
+
+    if (trimmed.startsWith("> ")) {
+      if (!currentSection) currentSection = `<section class="section">\n`;
+      currentSection += `<blockquote><p>${trimmed.slice(2)}</p></blockquote>\n`;
+      continue;
+    }
+
+    // Regular paragraph
+    if (!inChapter) {
+      chapterNum++;
+      currentChapter = `<section class="chapter" data-chapter="${chapterNum}">\n`;
+      inChapter = true;
+    }
+    if (!currentSection) currentSection = `<section class="section">\n`;
+    currentSection += `<p>${trimmed}</p>\n`;
+  }
+
+  // Close remaining
+  if (currentSection) currentChapter += `${currentSection}</section>\n`;
+  if (inChapter) chapters.push(`${currentChapter}</section>\n`);
+
+  // If no structure was built, wrap everything as one chapter
+  if (chapters.length === 0) {
+    const paragraphs = raw.split("\n").filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join("\n");
+    return `<section class="chapter" data-chapter="1">\n<section class="section">\n${paragraphs}\n</section>\n</section>`;
+  }
+
+  return chapters.join("\n");
 }
 
 const HTML_CONTENT_TYPE = "text/html; charset=utf-8";
@@ -144,7 +206,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
   const rawString =
     typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent);
-  const paragraphs = buildParagraphs(rawString);
+  const body = buildStyledHtml(rawString);
   const finalCss = css ?? DEFAULT_CSS;
 
   const html = `<!DOCTYPE html>
@@ -155,7 +217,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 <style>${finalCss}</style>
 </head>
 <body>
-${paragraphs}
+${body}
 </body>
 </html>`;
 
