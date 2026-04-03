@@ -96,30 +96,28 @@ export function LivePreview({ projectId, refreshKey = 0 }: LivePreviewProps) {
             Failed to load preview
           </div>
         )}
-        {/* Page container — sized to match the scaled A4 dimensions */}
+        {/* Preview container — Paged.js renders pages inside the iframe */}
         <div
-          className="mx-auto bg-white shadow-lg overflow-hidden"
-          style={{
-            width: `${PAGE_WIDTH_MM * scale}mm`,
-            minHeight: `${PAGE_HEIGHT_MM * scale}mm`,
-          }}
+          className="mx-auto overflow-hidden"
+          style={{ width: `${PAGE_WIDTH_MM * scale}mm` }}
           aria-hidden={isLoading || hasError}
         >
           <iframe
             key={refreshKey}
             src={previewUrl}
             title="Page preview"
-            className="border-0"
+            className="border-0 w-full"
             style={{
               width: `${PAGE_WIDTH_MM / scale}mm`,
-              height: `${PAGE_HEIGHT_MM / scale}mm`,
+              minHeight: "80vh",
+              height: "2000px",
               transform: `scale(${scale})`,
               transformOrigin: "top left",
               display: "block",
             }}
             onLoad={handleLoad}
             onError={handleError}
-            sandbox="allow-same-origin"
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
       </div>

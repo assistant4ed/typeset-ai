@@ -214,7 +214,27 @@ export async function GET(_request: Request, { params }: RouteParams) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>${finalCss}</style>
+<style>
+/* Base page setup for A4 */
+@page {
+  size: 210mm 297mm;
+  margin: 20mm 15mm 25mm 20mm;
+}
+@media screen {
+  body {
+    background: #e5e7eb;
+    margin: 0;
+    padding: 20px 0;
+  }
+  .pagedjs_page {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    margin: 0 auto 20px auto;
+  }
+}
+${finalCss}
+</style>
+<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
 </head>
 <body>
 ${body}
