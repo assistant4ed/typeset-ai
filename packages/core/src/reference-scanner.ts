@@ -41,7 +41,7 @@ export async function scanReference(imagePath: string): Promise<ScanResult> {
   const ai = new GoogleGenAI({ apiKey });
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-pro-preview-05-06",
+    model: "gemini-2.0-flash",
     config: { maxOutputTokens: 4096 },
     contents: [
       {
